@@ -8,15 +8,19 @@ if (stage) {
     if (!es[0].isIntersecting) return;
     io.disconnect();
     Promise.all([import('three'), import('three/addons/geometries/RoundedBoxGeometry.js'),
-      import('three/addons/environments/RoomEnvironment.js'), import('three/addons/controls/OrbitControls.js')])
-      .then(([THREE, rb, re, oc]) => init(THREE, rb.RoundedBoxGeometry, re.RoomEnvironment, oc.OrbitControls))
+      import('three/addons/environments/RoomEnvironment.js'), import('three/addons/controls/OrbitControls.js'),
+      import('three/addons/utils/BufferGeometryUtils.js')])
+      .then(([THREE, rb, re, oc, bgu]) => init(THREE, rb.RoundedBoxGeometry, re.RoomEnvironment, oc.OrbitControls, bgu.mergeGeometries))
       .catch(() => stage.classList.add('is-nogl'));
   }, { rootMargin: '500px 0px' });
   io.observe(stage);
 }
 
-function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
-  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls, mergeGeometries) {
+  // « réduire les animations » : on retire rotations, clignotements et vols de caméra, on garde les changements d'état.
+  // Le réglage est suivi en direct s'il change pendant la visite.
+  const rm = matchMedia('(prefers-reduced-motion: reduce)');
+  let calm = rm.matches;
   const coarse = matchMedia('(pointer: coarse)').matches;
   const root = stage.closest('.maison');
   const canvas = stage.querySelector('canvas');
@@ -57,18 +61,20 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
   };
   const glow = (color) => std(color, 0.5, { emissive: 0x000000 });
 
+  const statics = [];
+  const keep = (m, parent) => { if (parent === scene && Object.values(M).includes(m.material) && m.material !== M.roof && m.material !== M.gable) statics.push(m); return m; };
   // pavé arrondi posé au sol (le point y est le dessous)
   function rbox(w, h, d, x, y, z, mat, parent = scene, r = 0.05) {
     const m = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 2, Math.min(r, w / 2.1, h / 2.1, d / 2.1)), mat);
     m.position.set(x, y + h / 2, z); m.castShadow = true; m.receiveShadow = true;
-    parent.add(m); return m;
+    parent.add(m); return keep(m, parent);
   }
   function cyl(rt, rb, h, x, y, z, mat, parent = scene, seg = 28) {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
-    m.position.set(x, y + h / 2, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+    m.position.set(x, y + h / 2, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return keep(m, parent);
   }
   function sphere(r, x, y, z, mat, parent = scene) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m;
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return keep(m, parent);
   }
 
   // ---------- socle, jardin, allées ----------
@@ -184,7 +190,7 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
   fx.domotique = (t, on) => {
     const k = on ? Math.min(1, t * 1.6) : 0;
     bulbM.emissive.setRGB(k, 0.82 * k, 0.35 * k); lamp.intensity = k * 12;
-    hub.material.emissive.setRGB(0, 0.1 * k, on ? 0.5 + 0.3 * Math.sin(t * 5) : 0);
+    hub.material.emissive.setRGB(0, 0.1 * k, on ? 0.5 + (calm ? 0 : 0.3 * Math.sin(t * 5)) : 0);
   };
   // alarme : détecteur dans l'angle du séjour, interphone au portillon
   const detM = glow(0xf2f3f0);
@@ -195,9 +201,9 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
   rbox(0.18, 1.35, 0.18, -2.3, 0.05, 4.65, M.white, scene, 0.04);
   const intercom = rbox(0.34, 0.46, 0.12, -2.3, 1.35, 4.65, glow(0x2a5cb3), scene, 0.04);
   fx['alarme-interphonie'] = (t, on) => {
-    detM.emissive.set(on && Math.sin(t * 9) > 0 ? 0xd8261c : 0x000000);
-    const p = (t * 0.8) % 1; ring.scale.setScalar(on ? 1 + p * 5 : 1); ring.material.opacity = on ? 0.85 * (1 - p) : 0;
-    intercom.material.emissive.set(on && Math.sin(t * 4) > 0 ? 0x24489a : 0x000000);
+    detM.emissive.set(on && (calm || Math.sin(t * 9) > 0) ? 0xd8261c : 0x000000);
+    const p = (t * 0.8) % 1; ring.scale.setScalar(on && !calm ? 1 + p * 5 : 1); ring.material.opacity = on && !calm ? 0.85 * (1 - p) : 0;
+    intercom.material.emissive.set(on && (calm || Math.sin(t * 4) > 0) ? 0x24489a : 0x000000);
   };
   // chauffage : radiateur de la chambre
   const fins = [];
@@ -215,7 +221,7 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
     const arm = new THREE.Group(); arm.rotation.z = i * Math.PI * 2 / 5; arm.add(b); fan.add(arm);
   }
   let fanV = 0.5;
-  fx.vmc = (t, on, dt) => { fanV += ((on ? 16 : 0.5) - fanV) * Math.min(1, dt * 1.4); fan.rotation.z -= fanV * dt; };
+  fx.vmc = (t, on, dt) => { if (calm) return; fanV += ((on ? 16 : 0.5) - fanV) * (1 - Math.exp(-1.4 * dt)); fan.rotation.z -= fanV * dt; };
   // motorisation : porte de garage basculante et feu orange
   const pivot = new THREE.Group(); pivot.position.set(5.5, Y0 + H - 0.36, 4 - T / 2); scene.add(pivot);
   const door = rbox(3.7, 2.45, 0.1, 0, -2.45, 0, M.white, pivot, 0.03);
@@ -224,8 +230,8 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
   let doorA = 0;
   fx['motorisation-portails-garages'] = (t, on, dt) => {
     const target = on ? Math.PI / 2 - 0.05 : 0;   // la porte bascule vers l'intérieur, sous le plafond
-    doorA += (target - doorA) * Math.min(1, dt * 2.2); pivot.rotation.x = doorA;
-    flashM.emissive.set(Math.abs(target - doorA) > 0.02 && Math.sin(t * 12) > 0 ? 0xff8a00 : 0x000000);
+    doorA = calm ? target : doorA + (target - doorA) * (1 - Math.exp(-2.4 * dt)); pivot.rotation.x = doorA;
+    flashM.emissive.set(!calm && Math.abs(target - doorA) > 0.02 && Math.sin(t * 12) > 0 ? 0xff8a00 : 0x000000);
   };
   // borne de recharge, voiture, câble
   rbox(0.5, 1.5, 0.36, 8.65, 0.05, 5.4, M.white, scene, 0.08);
@@ -252,13 +258,28 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
     cableM.color.set(on ? 0xf7c600 : 0x2b2e31); cableM.emissive.set(on ? 0x6a5300 : 0x000000);
     screenM.emissive.set(on ? 0x14398a : 0x000000);
     bat.visible = on; bat.lookAt(cam.position.x, bat.getWorldPosition(new THREE.Vector3()).y, cam.position.z);
-    bars.forEach((b, i) => { const lit = on && (t * 1.1) % 5.5 > i + 0.5; b.material.color.set(lit ? 0x3bb36a : 0xdfe2dc); b.material.emissive.set(lit ? 0x0d4a22 : 0x000000); });
+    bars.forEach((b, i) => { const lit = on && (calm || (t * 1.1) % 5.5 > i + 0.5); b.material.color.set(lit ? 0x3bb36a : 0xdfe2dc); b.material.emissive.set(lit ? 0x0d4a22 : 0x000000); });
   };
   // tertiaire : les bureaux s'allument fenêtre par fenêtre
   const order = offWins.map((_, i) => i).sort((a, b) => ((a * 7) % 11) - ((b * 7) % 11));
   fx['electricite-tertiaire-et-industrielle'] = (t, on) => order.forEach((idx, k) => {
     const lit = on && t * 7 > k; const w = offWins[idx];
     w.material.color.set(lit ? 0xf7c600 : 0xd7e2f2); w.material.emissive.set(lit ? 0x6a5300 : 0x000000);
+  });
+
+  // ---------- fusion des éléments fixes : un seul objet par matière (beaucoup moins d'appels de dessin) ----------
+  const live = new Set([bulb]);
+  scene.updateMatrixWorld(true);
+  const byMat = new Map();
+  statics.forEach((m) => { if (live.has(m)) return; (byMat.get(m.material) || byMat.set(m.material, []).get(m.material)).push(m); });
+  byMat.forEach((list, mat) => {
+    if (list.length < 2) return;
+    const geos = list.map((m) => { const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(m.matrixWorld); return g; });
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((g) => g.dispose());
+    if (!merged) return;
+    const one = new THREE.Mesh(merged, mat); one.castShadow = one.receiveShadow = true; scene.add(one);
+    list.forEach((m) => { scene.remove(m); m.geometry.dispose(); });
   });
 
   // ---------- points d'intérêt : de vrais boutons HTML posés sur la 3D ----------
@@ -369,18 +390,20 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
   let visible = false, last = 0, t = 0, started = false;
   new IntersectionObserver((es) => {
     visible = es[0].isIntersecting;
-    if (visible) {
-      if (!started && !calm) { started = true; flyTo(HOME, 1, Math.PI / 4, 0.98, introDur * 1000); }
-      last = performance.now(); requestAnimationFrame(loop);
-    }
+    if (visible && !started && !calm) { started = true; flyTo(HOME, 1, Math.PI / 4, 0.98, introDur * 1000); }
+    last = performance.now();
+    renderer.setAnimationLoop(visible ? loop : null);   // aucun calcul quand la maison n'est pas à l'écran
   }, { threshold: 0.35 }).observe(stage);
+  rm.addEventListener('change', (e) => {
+    calm = e.matches;
+    if (calm) { intro = 1; applyIntro(1); tween = null; controls.autoRotate = false; root.classList.add('is-open'); cam.zoom = Math.max(cam.zoom, 1); cam.updateProjectionMatrix(); }
+  });
   function loop(now) {
-    if (!visible) return;
     const dt = Math.min(0.05, (now - last) / 1000); loop.prev = last; last = now; t += dt; since += dt;
     if (intro < 1) { intro = Math.min(1, intro + Math.min(0.1, (now - (loop.prev || now)) / 1000) / introDur); applyIntro(intro); if (intro >= 1 && !active && !calm) controls.autoRotate = !root.classList.contains('is-touched'); }
     if (tween) tween(now);
     controls.update();
-    for (const slug in fx) fx[slug](slug === active ? since : t, slug === active, dt);
+    for (const slug in fx) fx[slug](slug === active ? (calm ? 60 : since) : t, slug === active, dt);
     renderer.render(scene, cam);
     const w = stage.clientWidth, h = stage.clientHeight;
     for (const slug in pins) {
@@ -390,7 +413,6 @@ function init(THREE, RoundedBoxGeometry, RoomEnvironment, OrbitControls) {
       if (!b._lw) b._lw = b.lastChild.offsetWidth;   // largeur de l'étiquette, mesurée une fois
       b.classList.toggle('is-left', x + b._lw + 30 > w && x > w / 2);
     }
-    requestAnimationFrame(loop);
   }
   if (calm) root.classList.add('is-open');
   stage.classList.add('is-ready');
