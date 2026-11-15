@@ -298,40 +298,46 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
         if ('roughness' in m) { m.roughness = Math.max(m.roughness, 0.55); m.metalness = Math.min(m.metalness, m.name.startsWith('metal') ? 0.4 : 0); }
       }
     });
-    o.scale.setScalar(s); o.rotation.y = ry; o.position.set(x, y, z); scene.add(o); return o;
+    // les modèles ont leur origine dans un coin : on recentre l'empreinte sur (x, z) et on pose le dessous à y
+    // orientation : ry = 0 -> l'avant du meuble regarde +z (le dos vers -z)
+    o.scale.setScalar(s); o.rotation.y = ry; o.position.set(0, 0, 0); o.updateMatrixWorld(true);
+    const bb = new THREE.Box3().setFromObject(o), c = bb.getCenter(new THREE.Vector3());
+    o.position.set(x - c.x, y - bb.min.y, z - c.z); scene.add(o); return o;
   }
-  // séjour : cuisine contre le mur nord, salon face à la télé
-  [-7.5, -6.64, -5.78, -4.92].forEach((x, i) => put(['kitchenCabinet', 'kitchenSink', 'kitchenStoveElectric', 'kitchenCabinetDrawer'][i], x, -4.45, { ry: 0 }));
-  put('kitchenFridgeLarge', -2.6, -4.4);
-  [-7.5, -6.64].forEach((x) => put('kitchenCabinetUpperDouble', x, -4.68, { y: F0 + 1.45 }));
-  put('table', -5.6, -2.4, { ry: 0 });
-  [[-6.3, -2.4, Math.PI / 2], [-4.9, -2.4, -Math.PI / 2], [-5.6, -1.75, Math.PI], [-5.6, -3.05, 0]].forEach(([x, z, r]) => put('chair', x, z, { ry: r }));
-  put('rugRectangle', -4.6, 1.6, { s: 2.2 });
-  put('loungeSofaLong', -4.6, 0.55, { ry: 0 });
-  put('tableCoffee', -4.6, 1.85);
-  put('cabinetTelevision', -4.6, 3.55, { ry: Math.PI });
-  put('televisionModern', -4.6, 3.6, { ry: Math.PI, y: F0 + 0.62 });
-  put('loungeChair', -2.4, 1.7, { ry: -Math.PI / 2 });
-  put('lampRoundFloor', -7.4, 0.2);
-  put('pottedPlant', -7.4, 3.4); put('bookcaseOpenLow', -7.6, 1.6, { ry: Math.PI / 2 }); put('books', -7.6, 1.6, { y: F0 + 0.8 });
-  // chambre
-  put('bedDouble', 2.6, 2.2, { ry: -Math.PI / 2 });
-  put('cabinetBedDrawerTable', 3.55, 0.95, { ry: -Math.PI / 2 }); put('cabinetBedDrawerTable', 3.55, 3.45, { ry: -Math.PI / 2 });
-  put('lampRoundTable', 3.55, 0.95, { y: F0 + 0.53 }); put('lampRoundTable', 3.55, 3.45, { y: F0 + 0.53 });
-  put('rugRounded', 1.6, 2.2, { s: 1.4, ry: Math.PI / 2 });
+  // séjour : cuisine dos au mur nord ; salon : canapé face à la télé posée contre le mur sud
+  const PI = Math.PI;
+  [-7.45, -6.59, -5.73, -4.87].forEach((x, i) => put(['kitchenCabinet', 'kitchenSink', 'kitchenStoveElectric', 'kitchenCabinetDrawer'][i], x, -4.45));
+  put('kitchenFridgeLarge', -3.85, -4.5);
+  [-7.45, -6.59].forEach((x) => put('kitchenCabinetUpperDouble', x, -4.69, { y: F0 + 1.45 }));
+  put('table', -5.6, -2.4);
+  put('chair', -5.6, -1.62, { ry: PI }); put('chair', -5.6, -3.18); put('chair', -6.62, -2.4, { ry: PI / 2 }); put('chair', -4.58, -2.4, { ry: -PI / 2 });
+  put('rugRectangle', -4.6, 2.0, { s: 2.1 });
+  put('loungeSofaLong', -4.6, 0.75);
+  put('tableCoffee', -4.6, 2.2);
+  put('cabinetTelevision', -4.6, 3.65, { ry: PI });
+  put('televisionModern', -4.6, 3.68, { ry: PI, y: F0 + 0.62 });
+  put('loungeChair', -2.35, 2.0, { ry: -PI / 2 });
+  put('lampRoundFloor', -6.7, 0.1);
+  put('bookcaseOpenLow', -7.65, 2.3, { ry: PI / 2 });
+  put('pottedPlant', -7.45, 3.5);
+  // chambre : tête de lit contre la cloison nord, tables de chevet de part et d'autre ; radiateur sous la fenêtre sud
+  put('bedDouble', 2.4, -0.28);
+  put('cabinetBedDrawerTable', 1.12, -1.15); put('cabinetBedDrawerTable', 3.68, -1.15);
+  put('lampRoundTable', 1.12, -1.15, { y: F0 + 0.52 }); put('lampRoundTable', 3.68, -1.15, { y: F0 + 0.52 });
+  put('rugRounded', 2.4, 1.55, { s: 1.3 });
   // entrée
   put('plantSmall1', 0.1, 3.4, { s: 3 });
-  // cellier technique
-  put('washer', -0.95, -2.2, { ry: Math.PI / 2 }); put('dryer', -0.95, -3.0, { ry: Math.PI / 2 });
-  // salle de bain
-  put('bathtub', 2.55, -4.35, { ry: 0 });
-  put('toilet', 3.6, -2.2, { ry: -Math.PI / 2 });
-  put('bathroomSink', 1.4, -2.0, { ry: Math.PI / 2 }); put('bathroomMirror', 1.13, -2.0, { ry: Math.PI / 2, y: F0 + 1.3 });
+  // cellier : lave-linge et sèche-linge dos à la cloison ouest
+  put('washer', -0.92, -2.25, { ry: PI / 2 }); put('dryer', -0.92, -3.1, { ry: PI / 2 });
+  // salle de bain : baignoire contre le mur nord, WC dos au mur est, lavabo et miroir sur la cloison ouest
+  put('bathtub', 2.55, -4.32);
+  put('toilet', 3.42, -2.3, { ry: -PI / 2 });
+  put('bathroomSink', 1.42, -2.4, { ry: PI / 2, y: F0 + 0.45 }); put('bathroomMirror', 1.16, -2.4, { ry: PI / 2, y: F0 + 1.15 });
   // jardin
   const trees = [['tree_oak', -12.5, 7.5, 3.6], ['tree_default', 12.6, -8.2, 3.6], ['tree_detailed', -12.8, -1.5, 3.2], ['tree_pineRoundC', 13.1, 3.0, 3.6], ['tree_oak', 2.6, -9.2, 3.0], ['tree_default', -4.5, -9.0, 2.6]];
   trees.forEach(([n, x, z, s]) => put(n, x, z, { s, ry: rnd() * 6, y: 0.03 }));
   for (let i = 0; i < 9; i++) put(['plant_bushDetailed', 'plant_bushLarge', 'plant_bush'][i % 3], -7.6 + i * 0.85, 5.2, { s: 2.2, ry: rnd() * 6, y: 0.03 });
-  [[1.8, 5.1], [2.6, 5.4], [3.3, 5.0], [-8.6, 2.0], [-8.7, -3.0]].forEach(([x, z], i) => put(['flower_yellowA', 'flower_purpleB', 'flower_redA'][i % 3], x, z, { s: 2.6, y: 0.03 }));
+  [[1.8, 5.1], [2.6, 5.4], [3.3, 5.0], [-8.6, 2.0], [-8.7, -3.0]].forEach(([x, z], i) => put(['flower_yellowA', 'flower_purpleB', 'flower_redA'][i % 3], x, z, { s: 1.3, y: 0.03 }));
   [[11.4, 6.4], [-10.5, 9.5], [10.8, -3.6]].forEach(([x, z]) => put('grass_large', x, z, { s: 2.6, y: 0.03 }));
   put('pot_large', 0.95, 4.7, { s: 1.4, y: 0.03 });
 
@@ -390,43 +396,23 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     tablet.material.emissive.setRGB(0.05 * a, 0.25 * a, 0.75 * a);
   };
 
-  // 3. chauffage : radiateur à panneau sur le mur est de la chambre ; il chauffe, l'air ondule au-dessus
-  const RX = 3.86, RZ = 2.2, RW = 1.6, RH = 0.62, RY = F0 + 0.16;
+  // 3. chauffage : radiateur à panneau sous la fenêtre de la chambre ; il tiédit, une lueur chaude douce l'entoure
+  const RXc = 2.4, RZw = 4 - T / 2, RW = 1.5, RH = 0.6, RY = F0 + 0.16;
+  const rad = new THREE.Group(); rad.position.set(RXc, 0, RZw - 0.1); scene.add(rad);
   const radM = std(0xf7f7f5, 0.42, { emissive: 0x000000 });
-  rbox(0.07, RH, RW, RX - 0.02, RY, RZ, radM, scene, 0.025);
+  rbox(RW, RH, 0.07, 0, RY, 0, radM, rad, 0.025);
   const grooveM = std(0xe3e3df, 0.5, { emissive: 0x000000 });
-  for (let i = 0; i < 15; i++) rbox(0.012, RH - 0.1, 0.035, RX - 0.062, RY + 0.05, RZ - RW / 2 + 0.1 + i * (RW - 0.2) / 14, grooveM, scene, 0.005);
-  rbox(0.05, 0.05, RW - 0.1, RX - 0.03, RY + RH - 0.02, RZ, std(0xebebe7, 0.5), scene, 0.02);          // grille supérieure
-  const knob = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.07, 20), std(0xffffff, 0.3)); knob.rotation.z = Math.PI / 2; knob.position.set(RX - 0.09, RY + RH - 0.08, RZ + RW / 2 - 0.08); scene.add(knob);
-  const knobLed = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), glow(0x444444)); knobLed.position.set(RX - 0.13, RY + RH - 0.06, RZ + RW / 2 - 0.08); scene.add(knobLed);
-  [RZ - RW / 2 + 0.15, RZ + RW / 2 - 0.15].forEach((z) => rbox(0.06, 0.12, 0.04, RX - 0.01, F0 + 0.04, z, M.steel, scene, 0.01));
-  const heatL = L(0xff7a2e, RX - 0.7, F0 + 0.9, RZ, 4.5);
-  const HEAT_FRAG = NOISE + `uniform float uTime, uLevel; varying vec2 vUv;
-    void main() {
-      vec2 uv = vUv;
-      float sway = (fbm(vec2(uv.y * 2.5 - uTime * .3, 1.7)) - .5) * .25 * uv.y;
-      vec2 q = vec2(uv.x + sway, uv.y);
-      float n = fbm(vec2(q.x * 3.4, q.y * 2.4 - uTime * .55));
-      float n2 = fbm(vec2(q.x * 7. + 3.1, q.y * 5. - uTime * 1.05));
-      float shape = smoothstep(0., .22, q.x) * (1. - smoothstep(.78, 1., q.x));
-      float wisps = smoothstep(.42, .9, n * .7 + n2 * .45 + (1. - uv.y) * .22);
-      float a = uLevel * shape * pow(1. - uv.y, 1.25) * (.18 + wisps) * smoothstep(0., .08, uv.y);
-      vec3 c = mix(vec3(1., .42, .12), vec3(1., .72, .38), wisps * (1. - uv.y));
-      gl_FragColor = vec4(c, min(.26, a * .34));
-    }`;
-  const heatMat = fxMat(VERT_UV, HEAT_FRAG);
-  const haze1 = new THREE.Mesh(new THREE.PlaneGeometry(RW + 0.1, 1.15), heatMat); haze1.rotation.y = -Math.PI / 2; haze1.position.set(RX - 0.18, RY + RH + 0.52, RZ);
-  const haze2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 1.0), heatMat); haze2.position.set(RX - 0.35, RY + RH + 0.45, RZ);
-  [haze1, haze2].forEach((h) => { h.renderOrder = 4; scene.add(h); });
-  const wallGlow = halo(2.6, 2.0, 0xff7a2e, 0.35); wallGlow.rotation.y = -Math.PI / 2; wallGlow.position.set(RX - 0.09, RY + RH * 0.7, RZ);
-  const floorGlow = halo(2.4, 2.8, 0xff8a3c, 0.25); floorGlow.rotation.x = -Math.PI / 2; floorGlow.position.set(RX - 0.8, F0 + 0.012, RZ);
+  for (let i = 0; i < 14; i++) rbox(0.035, RH - 0.1, 0.012, -RW / 2 + 0.1 + i * (RW - 0.2) / 13, RY + 0.05, -0.042, grooveM, rad, 0.005);
+  const knobLed = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), glow(0x444444)); knobLed.position.set(RW / 2 - 0.08, RY + RH - 0.07, -0.05); rad.add(knobLed);
+  const heatL = L(0xff8a3c, RXc, F0 + 0.9, RZw - 0.9, 3.5);
+  const wallGlow = halo(2.4, 1.6, 0xff8a3c, 0.3); wallGlow.position.set(RXc, RY + RH * 0.6, RZw - 0.11); wallGlow.rotation.y = PI;
+  const floorGlow = halo(2.2, 1.6, 0xff9a4a, 0.22); floorGlow.rotation.x = -PI / 2; floorGlow.position.set(RXc, F0 + 0.012, RZw - 0.7);
   act[3] = (a) => {
     const k = THREE.MathUtils.smoothstep(a, 0, 0.8);
-    radM.color.setRGB(1, 1 - 0.1 * k, 1 - 0.22 * k); radM.emissive.setRGB(0.22 * k, 0.06 * k, 0.01 * k);
-    grooveM.emissive.setRGB(0.35 * k, 0.1 * k, 0.02 * k);
+    radM.color.setRGB(1, 1 - 0.08 * k, 1 - 0.18 * k); radM.emissive.setRGB(0.16 * k, 0.05 * k, 0.01 * k);
+    grooveM.emissive.setRGB(0.22 * k, 0.07 * k, 0.01 * k);
     knobLed.material.emissive.set(a > 0.05 ? 0xff5a1a : 0x000000);
-    heatL.intensity = a * 5; heatMat.uniforms.uLevel.value = THREE.MathUtils.smoothstep(a, 0.2, 1);
-    wallGlow.material.uniforms.uLevel.value = k; floorGlow.material.uniforms.uLevel.value = k;
+    heatL.intensity = a * 3.5; wallGlow.material.uniforms.uLevel.value = k; floorGlow.material.uniforms.uLevel.value = k;
   };
 
   // 4. VMC : caisson au-dessus du cellier, gaines vers la cuisine et la salle de bain, l'air circule
@@ -610,7 +596,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     { p: [24, 15, 27], t: [-1, 1.2, 0] },          // 0 la maison, toit en place
     { p: [0.5, 4.9, 1.6], t: [-0.2, 1.55, -4.8] },  // 1 tableau électrique
     { p: [-0.6, 8.2, 6.6], t: [-4.8, 0.8, -1.0] }, // 2 domotique, séjour
-    { p: [-0.4, 6.6, 2.6], t: [3.6, 0.8, 2.2] },   // 3 chauffage, chambre
+    { p: [2.9, 4.3, 0.7], t: [2.1, 0.7, 3.7] },   // 3 chauffage, chambre
     { p: [5.5, 11.5, 6.5], t: [-2.2, 1.8, -3.4] },  // 4 VMC
     { p: [1.8, 7.6, 6.4], t: [-5.4, 1.3, -2.6] },  // 5 alarme
     { p: [12.5, 7.5, 22.5], t: [6.8, 1.0, 7.2] },  // 6 motorisation
@@ -620,7 +606,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   ].map((k) => ({ p: new THREE.Vector3(...k.p), t: new THREE.Vector3(...k.t) }));
 
   const pins = [...root.querySelectorAll('.vpin')];
-  const PIN = { 1: [-0.2, 2.0, -4.6], 2: [-4.6, 2.2, 1.6], 3: [3.7, 1.3, 2.2], 4: [-0.2, 3.6, -3.2], 5: [-7.7, 2.9, -4.7], 6: [6.8, 3.2, 2.2], 7: [9.85, 1.8, 4.1], 8: [-11.6, 8.3, -6.6] };
+  const PIN = { 1: [-0.2, 2.0, -4.6], 2: [-4.6, 2.2, 1.6], 3: [2.4, 1.2, 3.7], 4: [-0.2, 3.6, -3.2], 5: [-7.7, 2.9, -4.7], 6: [6.8, 3.2, 2.2], 7: [9.85, 1.8, 4.1], 8: [-11.6, 8.3, -6.6] };
   const breakers = [...root.querySelectorAll('.vrail__b')];
   breakers.forEach((b) => b.addEventListener('click', () => steps[+b.dataset.k].scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' })));
 
