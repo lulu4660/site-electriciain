@@ -892,7 +892,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .visite__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .8s ease-out; }
 .visite.is-ready .visite__canvas { opacity: 1; }
 .visite__steps { position: relative; z-index: 2; margin-top: -100vh; margin-top: -100svh; pointer-events: none; }
-.vstep { min-height: 120vh; min-height: 120svh; display: flex; align-items: center; padding: 96px clamp(16px, 5vw, 72px) 40px; }
+.vstep { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding: 96px clamp(16px, 5vw, 72px) 40px; }
 .vstep__card {
   pointer-events: auto; width: min(420px, 100%); padding: 26px 26px 24px; border-radius: 14px;
   background: rgba(252, 252, 250, .94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -904,7 +904,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .vstep__card .btn { margin-top: 16px; }
 .vstep__n { font: 600 1rem/1 var(--font-display); color: var(--blue); letter-spacing: .02em; }
 .vstep--intro { min-height: 100vh; min-height: 100svh; align-items: flex-end; padding-bottom: 9vh; }
-.vstep--end { min-height: 150vh; min-height: 150svh; align-items: center; }
+.vstep--end { min-height: 130vh; min-height: 130svh; align-items: center; }
 .vstep__acts { display: flex; flex-wrap: wrap; gap: 10px; }
 .vstep__acts .btn { margin-top: 6px; }
 .vstep__hint { margin-top: 14px !important; font-size: .92rem; color: var(--muted) !important; }
@@ -912,6 +912,12 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .vstep__cue span { position: absolute; left: 50%; top: 6px; width: 4px; height: 7px; margin-left: -2px; border-radius: 2px; background: var(--black); }
 @media (prefers-reduced-motion: no-preference) { .vstep__cue span { animation: cue 1.6s var(--ease-out) infinite; } }
 @keyframes cue { 0% { opacity: 0; translate: 0 -2px; } 30% { opacity: 1; } 100% { opacity: 0; translate: 0 12px; } }
+/* téléphone : calage doux sur chaque fiche ; ordinateur : défilement adouci (Lenis) */
+html.snap-visite { scroll-snap-type: y proximity; }
+html.snap-visite .vstep { scroll-snap-align: center; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
 /* rail de progression : huit petits disjoncteurs qui s'enclenchent */
 .vrail { position: absolute; right: clamp(12px, 2.4vw, 32px); top: 50%; translate: 0 -50%; z-index: 3; display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: rgba(207, 211, 205, .9); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
 .vrail__b { position: relative; width: 26px; height: 40px; padding: 0; border: 0; border-radius: 4px; background: var(--face); box-shadow: inset 0 0 0 1px var(--edge); cursor: pointer; }
@@ -938,7 +944,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .visite.is-nogl .visite__steps { margin-top: 0; pointer-events: auto; }
 .visite.is-nogl .vstep { min-height: 0; padding-block: 18px; }
 @media (max-width: 760px) {
-  .vstep { align-items: flex-end; padding: 80px 12px calc(84px + env(safe-area-inset-bottom)); min-height: 110svh; }   /* au-dessus de la barre d'appel */
+  .vstep { align-items: flex-end; padding: 80px 12px calc(84px + env(safe-area-inset-bottom)); min-height: 100svh; }   /* au-dessus de la barre d'appel */
   .vstep--intro { min-height: 100svh; }
   .vstep--end { align-items: flex-end; }
   .vstep__card { width: 100%; padding: 18px 18px 16px; }

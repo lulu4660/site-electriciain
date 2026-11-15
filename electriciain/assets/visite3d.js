@@ -608,7 +608,37 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   const pins = [...root.querySelectorAll('.vpin')];
   const PIN = { 1: [-0.2, 2.0, -4.6], 2: [-4.6, 2.2, 1.6], 3: [2.4, 1.2, 3.7], 4: [-0.2, 3.6, -3.2], 5: [-7.7, 2.9, -4.7], 6: [6.8, 3.2, 2.2], 7: [9.85, 1.8, 4.1], 8: [-11.6, 8.3, -6.6] };
   const breakers = [...root.querySelectorAll('.vrail__b')];
-  breakers.forEach((b) => b.addEventListener('click', () => steps[+b.dataset.k].scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' })));
+  // ---------- défilement : adouci à la molette (ordinateur), et calage doux sur la fiche la plus proche ----------
+  let lenis = null;
+  const centerOf = (el) => { const r = el.getBoundingClientRect(); return scrollY + r.top + r.height / 2 - innerHeight / 2; };
+  const goTo = (el) => lenis ? lenis.scrollTo(centerOf(el), { duration: 1.1, easing: (x) => 1 - Math.pow(1 - x, 4) }) : el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' });
+  breakers.forEach((b) => b.addEventListener('click', () => goTo(steps[+b.dataset.k])));
+  if (!calm && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    import('https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.mjs').then(({ default: Lenis }) => {
+      lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true,
+        prevent: (node) => !!(node.closest && node.closest('.volet, .nav, .jeu')) });   // le volet et le menu gardent leur propre défilement
+      new MutationObserver(() => { document.documentElement.classList.contains('volet-lock') ? lenis.stop() : lenis.start(); })
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      const raf = (time) => { lenis.raf(time); requestAnimationFrame(raf); }; requestAnimationFrame(raf);
+      let idle = 0, snapping = false;
+      addEventListener('scroll', () => {
+        clearTimeout(idle);
+        if (snapping) return;
+        const check = () => {
+          if (lenis.isScrolling) { idle = setTimeout(check, 120); return; }   // attendre la fin réelle du défilement
+          const rr = root.getBoundingClientRect(); if (rr.top > 0 || rr.bottom < innerHeight) return;   // seulement dans la visite
+          let best = null, bd = Infinity;
+          steps.forEach((el) => { const d = Math.abs(centerOf(el) - scrollY); if (d < bd) { bd = d; best = el; } });
+          if (best && bd > 4 && bd < innerHeight * 0.45) {
+            snapping = true;
+            lenis.scrollTo(centerOf(best), { duration: 0.9, easing: (x) => 1 - Math.pow(1 - x, 3), onComplete: () => { snapping = false; } });
+            setTimeout(() => { snapping = false; }, 1200);
+          }
+        };
+        idle = setTimeout(check, 160);
+      }, { passive: true });
+    }).catch(() => {});
+  } else document.documentElement.classList.add('snap-visite');   // téléphone : calage natif sur les fiches
 
   // ---------- lecture du défilement ----------
   let f = 0, fs = 0;      // étape courante (continue) et sa version amortie
@@ -624,7 +654,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   const camP = new THREE.Vector3(), camT = new THREE.Vector3(), goalP = new THREE.Vector3(), goalT = new THREE.Vector3(), tmp = new THREE.Vector3();
   function pathAt(x, outP, outT) {
     const i = Math.min(N - 1, Math.floor(x)), u = x - i;
-    const e = calm ? (u > 0.5 ? 1 : 0) : ease(THREE.MathUtils.clamp((u - 0.12) / 0.62, 0, 1));   // déplacement, puis temps de lecture
+    const e = calm ? (u > 0.5 ? 1 : 0) : ease(THREE.MathUtils.clamp((u - 0.04) / 0.82, 0, 1));   // la caméra glisse sur presque toute l'étape
     outP.lerpVectors(K[i].p, K[i + 1].p, e); outT.lerpVectors(K[i].t, K[i + 1].t, e);
     outP.y += Math.sin(Math.PI * e) * (calm ? 0 : 1.8);    // petit mouvement de grue entre deux pièces
     // écran vertical : on recule pour garder la pièce dans le cadre
@@ -660,7 +690,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.1); t += dt;
     // amortissement indépendant de la cadence d'images
-    fs = calm ? f : fs + (f - fs) * (1 - Math.exp(-7 * dt));
+    fs = calm ? f : fs + (f - fs) * (1 - Math.exp(-6 * dt));
     if (Math.abs(f - fs) < 0.0005) fs = f;
     const lvl = (k) => k === 6 ? THREE.MathUtils.clamp((fs - (k - 0.2)) / 0.2, 0, 1) : THREE.MathUtils.clamp((fs - (k - 0.36)) / 0.32, 0, 1);   // démarre quand la caméra arrive, plein au centre de la fiche (le garage, seulement une fois arrivé)
 
@@ -689,6 +719,8 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
 
     // équipements : ils s'allument à leur étape et restent allumés ensuite
     for (let k = 1; k <= 8; k++) act[k](lvl(k), t, dt);
+    // le faisceau balayant du détecteur n'apparaît que pendant l'étape de l'alarme (pas avant, pas après)
+    beam.material.uniforms.uLevel.value = lvl(5) * (1 - THREE.MathUtils.smoothstep(fs, 5.45, 5.85));
 
     // caméra
     if (fs > N - 0.25 && !calm) {
@@ -697,7 +729,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     if (free) controls.update();
     else {
       pathAt(fs, goalP, goalT);
-      const kc = calm || snap ? 1 : 1 - Math.exp(-9 * dt); snap = false;
+      const kc = calm || snap ? 1 : 1 - Math.exp(-5.5 * dt); snap = false;
       camP.lerp(goalP, kc); camT.lerp(goalT, kc);
       cam.position.copy(camP); cam.lookAt(camT);
     }
