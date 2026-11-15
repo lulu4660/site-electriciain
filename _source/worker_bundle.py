@@ -34,10 +34,11 @@ export default {
   fetch(req) {
     let p = decodeURIComponent(new URL(req.url).pathname);
     if (p.endsWith("/")) p += "index.html";
+    if (!FILES[p] && FILES[p + "/index.html"]) return Response.redirect(new URL(p + "/", req.url).toString(), 301);
     if (!FILES[p] && FILES[p + ".html"]) p += ".html";
     const found = !!FILES[p];
     if (!found) p = "/404.html";
-    const cache = p.endsWith(".html") ? "no-cache" : p.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "public, max-age=2592000";
+    const cache = p.endsWith(".html") ? "no-cache" : p.includes("/assets/") ? "public, max-age=31536000, immutable" : "public, max-age=2592000";
     return new Response(req.method === "HEAD" ? null : body(p), { status: found ? 200 : 404, headers: { "Content-Type": FILES[p][0], "Cache-Control": cache, ...SEC } });
   }
 };
