@@ -315,7 +315,7 @@ def panel(exclude=None, animate=False):
     """Les services présentés comme les disjoncteurs d'un tableau électrique."""
     mods = []
     for s_ in [x for x in SERVICES if x["slug"] != exclude]:
-        mods.append(f"""<li{' class="pw"' if animate else ''}><a class="brk" href="{s_["slug"]}.html">
+        mods.append(f"""<li{' class="pw"' if animate else ''}><a class="brk brk--{s_["slug"]}" href="{s_["slug"]}.html">
   <span class="brk__label">{s_["title"]}</span>
   <span class="brk__face" aria-hidden="true"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span>
   <span class="brk__desc">{s_["short"]}</span>
@@ -351,6 +351,94 @@ def volet_template(s_):
   <div class="aside-note"><h3>{s_["extra_h"]}</h3>{extra}</div>
   <p class="vc__more"><a href="{s_["slug"]}.html">Voir la page complète : {s_["title"]}</a></p>
 </div></template>"""
+
+
+
+# ------------------------------------------------------------------ scènes animées par service
+# Petites illustrations en traits (style des icônes), animées en CSS (classes .sc-*).
+_K = 'stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'
+SCENES = {
+ "electricite-generale": f"""
+  <rect x="26" y="58" width="64" height="64" rx="12" fill="#fff" {_K}/>
+  <circle cx="58" cy="90" r="19" fill="#f2f3f0" {_K}/>
+  <circle cx="51" cy="90" r="3.2" fill="#000"/><circle cx="65" cy="90" r="3.2" fill="#000"/>
+  <path d="M90 90 H138 Q154 90 154 106 V128 Q154 142 170 142 H186 Q194 142 194 134 V112" fill="none" {_K}/>
+  <path class="sc-current" d="M90 90 H138 Q154 90 154 106 V128 Q154 142 170 142 H186 Q194 142 194 134 V112" fill="none" stroke="#f7c600" stroke-width="5" stroke-linecap="round"/>
+  <circle class="sc-glow" cx="194" cy="66" r="34" fill="#f7c600"/>
+  <path d="M194 40 a24 24 0 0 1 14 43 v12 h-28 v-12 a24 24 0 0 1 14 -43 z" fill="#fff" {_K}/>
+  <path class="sc-filament" d="M186 80 l4 -10 l4 8 l4 -8 l4 10" fill="none" stroke="#f7c600" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M182 104 h24" {_K}/>""",
+ "alarme-interphonie": f"""
+  <path d="M44 100 L120 42 L196 100 V160 H44 Z" fill="#fff" {_K}/>
+  <circle class="sc-ripple" cx="120" cy="104" r="12" fill="none" stroke="#2a5cb3" stroke-width="3"/>
+  <circle class="sc-ripple sc-d2" cx="120" cy="104" r="12" fill="none" stroke="#2a5cb3" stroke-width="3"/>
+  <rect x="102" y="92" width="36" height="26" rx="8" fill="#f2f3f0" {_K}/>
+  <circle class="sc-led" cx="129" cy="101" r="4" fill="#d8261c"/>
+  <path d="M110 108 h12" {_K}/>
+  <path d="M106 160 v-28 h28 v28" fill="none" {_K}/>""",
+ "domotique": f"""
+  <path class="sc-wave" d="M98 46 q22 -14 44 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+  <path class="sc-wave sc-d2" d="M86 34 q34 -22 68 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+  <path class="sc-wave sc-d3" d="M74 22 q46 -30 92 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 112 L120 60 L196 112 V166 H44 Z" fill="#fff" {_K}/>
+  <circle class="sc-glow sc-glow--sync" cx="120" cy="116" r="26" fill="#f7c600"/>
+  <path d="M120 98 a14 14 0 0 1 8 25 v7 h-16 v-7 a14 14 0 0 1 8 -25 z" fill="#fff" {_K}/>
+  <path d="M114 138 h12" {_K}/>""",
+ "chauffage-electrique": f"""
+  <path class="sc-heat" d="M84 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
+  <path class="sc-heat sc-d2" d="M120 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
+  <path class="sc-heat sc-d3" d="M156 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="36" y="100" width="168" height="54" rx="10" fill="#fff" {_K}/>
+  <path d="M58 112 v30 M78 112 v30 M98 112 v30 M118 112 v30 M138 112 v30 M158 112 v30" {_K}/>
+  <circle cx="184" cy="127" r="7" fill="#f2f3f0" {_K}/>
+  <path d="M52 154 v10 M188 154 v10" {_K}/>""",
+ "vmc": f"""
+  <circle cx="104" cy="92" r="62" fill="#fff" {_K}/>
+  <circle cx="104" cy="92" r="50" fill="none" stroke="#c9cdc7" stroke-width="2"/>
+  <g class="sc-spin">
+    <path d="M104 92 C96 70 100 50 112 46 C122 44 124 62 104 92 Z" fill="#2a5cb3"/>
+    <path d="M104 92 C126 84 146 88 150 100 C152 110 134 112 104 92 Z" fill="#2a5cb3"/>
+    <path d="M104 92 C112 114 108 134 96 138 C86 140 84 122 104 92 Z" fill="#2a5cb3"/>
+    <path d="M104 92 C82 100 62 96 58 84 C56 74 74 72 104 92 Z" fill="#2a5cb3"/>
+  </g>
+  <circle cx="104" cy="92" r="8" fill="#fff" {_K}/>
+  <path class="sc-air" d="M178 70 h34" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+  <path class="sc-air sc-d2" d="M184 92 h30" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+  <path class="sc-air sc-d3" d="M178 114 h34" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>""",
+ "motorisation-portails-garages": f"""
+  <path d="M16 156 H224" {_K}/>
+  <rect x="30" y="66" width="14" height="90" rx="2" fill="#f2f3f0" {_K}/>
+  <circle class="sc-flash" cx="37" cy="56" r="8" fill="#ff8a00"/>
+  <path d="M30 60 h14" {_K}/>
+  <g class="sc-gate">
+    <rect x="46" y="84" width="142" height="64" rx="3" fill="#fff" {_K}/>
+    <path d="M66 84 v64 M86 84 v64 M106 84 v64 M126 84 v64 M146 84 v64 M166 84 v64 M46 116 h142" stroke="#000" stroke-width="2.4"/>
+  </g>
+  <rect x="190" y="66" width="14" height="90" rx="2" fill="#f2f3f0" {_K}/>
+  <rect x="14" y="134" width="14" height="22" rx="3" fill="#2a5cb3" {_K}/>""",
+ "electricite-tertiaire-et-industrielle": f"""
+  <rect x="52" y="34" width="136" height="128" rx="4" fill="#fff" {_K}/>
+  <g class="sc-windows">""" + "".join(
+     f'<rect x="{68 + c * 28}" y="{50 + r * 26}" width="18" height="16" rx="2" fill="#e4e6e2" stroke="#000" stroke-width="2" style="--w:{(r * 4 + c) * 7 % 16}"/>'
+     for r in range(4) for c in range(4)) + f"""</g>
+  <path d="M108 162 v-20 h24 v20" fill="#f2f3f0" {_K}/>""",
+ "borne-irve": f"""
+  <rect x="30" y="34" width="62" height="120" rx="12" fill="#fff" {_K}/>
+  <rect x="42" y="48" width="38" height="26" rx="4" fill="#2a5cb3"/>
+  <path d="M58 54 l-6 10 h8 l-4 8" fill="none" stroke="#f7c600" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 154 h74" {_K}/>
+  <path d="M92 116 C120 116 112 92 136 92" fill="none" {_K}/>
+  <path class="sc-current sc-current--short" d="M92 116 C120 116 112 92 136 92" fill="none" stroke="#f7c600" stroke-width="5" stroke-linecap="round"/>
+  <rect x="136" y="70" width="80" height="44" rx="8" fill="#fff" {_K}/>
+  <rect x="216" y="84" width="8" height="16" rx="2" fill="#000"/>
+  <rect class="sc-fill" x="143" y="77" width="66" height="30" rx="4" fill="#3bb36a"/>
+  <path d="M178 80 l-8 13 h10 l-6 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>""",
+}
+
+
+def scene(slug):
+    """Scène animée du service, dans un coffret gris (en-tête des pages services)."""
+    return f"""<div class="scene" aria-hidden="true"><svg viewBox="0 0 240 180" class="scene__svg scene--{slug}">{SCENES[slug]}</svg></div>"""
 
 
 def breaker(s_):
@@ -518,7 +606,7 @@ def page_service(s):
     return head(f"{s['title']} à {s['city'].split(' et ')[0]} (01) | {NOM}",
                 f"{s['short']} {NOM}, électriciens à Martignat, interviennent dans l'Ain. Devis gratuit.",
                 s["slug"]) + header(s["slug"]) + page_hero(
-        s["title"], s["h1"], s["lead"], aside=breaker(s),
+        s["title"], s["h1"], s["lead"], aside=scene(s["slug"]),
         note=f"Intervention à {s['city']} et dans tout l'Ain.") + f"""
 
 <section class="section"><div class="container">
