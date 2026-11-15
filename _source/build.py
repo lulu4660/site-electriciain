@@ -202,7 +202,7 @@ def gallery(photos):
 PARTENAIRES = ["img/p1.webp", "img/p2.webp", "img/p3.webp", "img/p4.webp"]
 
 # ------------------------------------------------------------------ gabarit
-def head(title, desc, canonical):
+def head(title, desc, canonical, extra=""):
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -223,7 +223,7 @@ def head(title, desc, canonical):
 <script>document.documentElement.classList.add('js')</script>
 <link rel="stylesheet" href="assets/style.css?v={VER}">
 {SCHEMA}
-</head>
+{extra}</head>
 <body>
 """
 
@@ -528,12 +528,17 @@ def page_service(s):
 """ + cta() + footer()
 
 
+LEAFLET = """<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+"""
+
+
 def page_contact():
     opts = "".join(f"<option>{s['title']}</option>" for s in SERVICES) + "<option>Dépannage</option><option>Autre</option>"
     ppl = "".join(f'<a class="person__tel" href="tel:{t}">{d}</a><span class="person__name">{n}</span>' for n, d, t in CONTACTS)
     return head(f"Contact et devis gratuit | {NOM}",
                 "Contactez Les Électrici'Ain à Martignat pour un devis gratuit : 06 46 24 50 05 ou 06 25 62 59 87. Du lundi au samedi, de 8 h à 19 h.",
-                "contact") + header("contact") + page_hero(
+                "contact", extra=LEAFLET) + header("contact") + page_hero(
         "Contact", "Parlons de votre projet",
         "Appelez-nous directement ou laissez-nous votre demande : nous vous rappelons rapidement.", ctas=False) + f"""
 
@@ -566,8 +571,15 @@ def page_contact():
 </div></section>
 
 <section class="section section--flush"><div class="container">
-  <iframe class="map" title="Plan d'accès : {ADRESSE}, {VILLE}" loading="lazy"
-    src="https://www.openstreetmap.org/export/embed.html?bbox=5.5889%2C46.1980%2C5.6289%2C46.2180&amp;layer=mapnik&amp;marker=46.207962%2C5.6088978"></iframe>
+  <div class="mapbox">
+    <div class="map" id="map" data-lat="46.207962" data-lng="5.6088978" role="region" aria-label="Carte : {ADRESSE}, {VILLE} et zone d'intervention"></div>
+    <div class="mapcard">
+      <b>{NOM}</b>
+      <span>{ADRESSE}<br>{VILLE}</span>
+      <small>Zone d'intervention en jaune : Haut-Bugey, Oyonnax, Bourg-en-Bresse et tout l'Ain.</small>
+      <a class="btn btn--yellow" href="https://www.google.com/maps/dir/?api=1&amp;destination=46.207962,5.6088978" target="_blank" rel="noopener">{icon("pin")} Itinéraire</a>
+    </div>
+  </div>
 </div></section>
 """ + footer()
 

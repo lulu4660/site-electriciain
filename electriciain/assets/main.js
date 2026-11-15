@@ -127,3 +127,23 @@
     });
   });
 })();
+
+// Carte de la page contact : fond clair, repère aux couleurs de l'entreprise, zone d'intervention.
+window.addEventListener('load', function () {
+  var el = document.getElementById('map');
+  if (!el || !window.L) return;
+  var pos = [+el.dataset.lat, +el.dataset.lng];
+  var touch = window.matchMedia('(pointer: coarse)').matches;
+  var map = L.map(el, { scrollWheelZoom: false, dragging: !touch, tap: false, zoomControl: false, attributionControl: true }).setView(pos, 9);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+  var zone = L.circle(pos, { radius: 48000, color: '#f7c600', weight: 2, fillColor: '#f7c600', fillOpacity: 0.12, interactive: false }).addTo(map);
+  var icon = L.divIcon({ className: '', iconSize: [46, 46], iconAnchor: [23, 55],
+    html: '<div class="pin"><span class="pin__halo"></span><span class="pin__dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></span></div>' });
+  L.marker(pos, { icon: icon, keyboard: false, title: "Les Électrici'Ain" }).addTo(map);
+  var wide = el.offsetWidth > 640;
+  map.fitBounds(L.latLng(pos).toBounds(96000), { paddingTopLeft: [wide ? 340 : 10, 10], paddingBottomRight: [10, 10] });
+});
