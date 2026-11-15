@@ -853,6 +853,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .vc__head { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(24px, 4vw, 44px); align-items: center; margin-bottom: clamp(28px, 4vw, 40px); }
 .vc__title { font-size: clamp(2rem, 4vw, 3rem); line-height: .98; max-width: 16ch; }
 .vc__img { border-radius: 8px; overflow: hidden; }
+.vc__head .scene { width: 100%; max-width: 420px; justify-self: center; }
 .vc__img img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
 .vc__cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 44px); margin-bottom: 28px; }
 .vc .aside-note { background: var(--ral-soft); }
@@ -862,7 +863,8 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
   .volet__sheet { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
   .volet__bar { padding-top: max(14px, env(safe-area-inset-top)); }
   .vc__head, .vc__cols { grid-template-columns: 1fr; }
-  .vc__head .vc__img { order: -1; }
+  .vc__head .vc__img, .vc__head .scene { order: -1; }
+  .vc__head .scene { max-width: 340px; }
 }
 
 /* ---------- Apparitions au défilement (classes .rv posées par main.js) ---------- */

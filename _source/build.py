@@ -330,8 +330,7 @@ def volet_template(s_):
     intro = "".join(f"<p>{p}</p>" for p in s_["intro"])
     items = "".join(f"<li>{i}</li>" for i in s_["items"])
     extra = "".join(f"<p>{p}</p>" for p in s_["extra"])
-    img = (f'<figure class="vc__img"><img src="{s_["img"]}" alt="{s_["title"]}" width="1500" height="1000" decoding="async"></figure>'
-           if s_["img"] else "")
+    img = scene(s_["slug"])   # la scène animée du service, jouée dès l'ouverture du volet
     return f"""<template id="volet-{s_["slug"]}" data-title="{s_["title"]}"><div class="vc">
   <div class="vc__head">
     <div>

@@ -112,6 +112,7 @@
     function ready() {
       volet.classList.add('is-ready');
       volet.querySelector('.volet__close').focus({ preventScroll: true });
+      content.querySelectorAll('.scene').forEach(initScene);   // la scène se dessine dès l'ouverture
     }
     if (calm || !from || !morph.animate) { morph.style.opacity = '0'; ready(); return true; }
     placeMorph(morph, to, radius);
@@ -215,7 +216,8 @@
 
   // Scènes animées des pages services : tracé à l'arrivée, puis boucle (.is-live),
   // en pause hors écran ; inclinaison 3D qui suit la souris.
-  document.querySelectorAll('.scene').forEach(function (sc) {
+  document.querySelectorAll('.scene').forEach(initScene);
+  function initScene(sc) {
     var start = function () {
       if (sc.classList.contains('is-in')) return;
       sc.classList.add('is-in', 'is-vis');
@@ -247,7 +249,7 @@
       sc.classList.remove('is-tilt');
       sc.style.setProperty('--rx', '0deg'); sc.style.setProperty('--ry', '0deg');
     });
-  });
+  }
 
   // Formulaire de contact : tant qu'aucun service d'envoi n'est branché
   // (attribut action vide), on ouvre un e-mail pré-rempli à l'adresse data-email.
