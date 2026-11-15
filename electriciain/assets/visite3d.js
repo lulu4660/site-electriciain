@@ -47,6 +47,31 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   const SKY = { day: new THREE.Color(0xe9edf0), dusk: new THREE.Color(0xf3cfa8), blue: new THREE.Color(0x3d5285), night: new THREE.Color(0x0e1a31) };
   scene.background = SKY.day.clone();
+  // ciel : dégradé horizon / zénith, halo du soleil, étoiles qui scintillent la nuit
+  const skyU = { uTop: { value: new THREE.Color() }, uHor: { value: new THREE.Color() }, uBot: { value: new THREE.Color() },
+    uSun: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uStars: { value: 0 }, uTime: { value: 0 } };
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(95, 48, 24), new THREE.ShaderMaterial({
+    uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: `varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+    fragmentShader: `uniform vec3 uTop, uHor, uBot, uSun, uSunDir; uniform float uStars, uTime; varying vec3 vDir;
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      void main() {
+        vec3 d = normalize(vDir); float h = d.y;
+        vec3 c = h > 0. ? mix(uHor, uTop, pow(smoothstep(0., .6, h), .75)) : mix(uHor, uBot, smoothstep(0., .2, -h));
+        float s = max(dot(d, normalize(uSunDir)), 0.);
+        c += uSun * (pow(s, 90.) * 1.6 + pow(s, 8.) * .35);
+        vec2 cell = floor(vec2(atan(d.z, d.x) * 90., h * 160.));
+        float r = hash(cell);
+        c += vec3(.9, .95, 1.) * step(.988, r) * smoothstep(.04, .25, h) * (.55 + .45 * sin(uTime * 2.3 + r * 60.)) * uStars;
+        gl_FragColor = vec4(c, 1.);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }` }));
+  sky.renderOrder = -10; scene.add(sky);
+  const SKYC = {
+    day: [0x9cc1e8, 0xeef2f4, 0xdde2de, 0xfff6e0, 0.25], dusk: [0x7086c2, 0xf8c38e, 0xd8b89c, 0xffa860, 1.0],
+    blue: [0x223870, 0x7380ad, 0x2d3658, 0xff9a70, 0.3], night: [0x040a1a, 0x182847, 0x0a1222, 0x8aa0ff, 0.05] };
+  const mixSky = (a, b, k) => [0, 1, 2, 3].map((i) => new THREE.Color(a[i]).lerp(new THREE.Color(b[i]), k)).concat([a[4] + (b[4] - a[4]) * k]);
   scene.fog = new THREE.Fog(SKY.day.clone(), 60, 120);
 
   const cam = new THREE.PerspectiveCamera(30, 1, 0.5, 200);
@@ -101,6 +126,55 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     road: std(0x9ea29c, 0.95), gate: std(0x30363c, 0.5),
   };
   const glow = (color, emissive = 0x000000) => std(color, 0.5, { emissive });
+
+  // ---------- shaders maison ----------
+  const NOISE = `
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+      return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+    float fbm(vec2 p) { float v = 0., a = .5; for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.03; a *= .5; } return v; }`;
+  const shaders = [];   // matériaux animés : on leur passe le temps à chaque image
+  function fxMat(vert, frag, uniforms = {}, opts = {}) {
+    const m = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uLevel: { value: 0 }, ...uniforms }, vertexShader: vert, fragmentShader: frag,
+      transparent: true, depthWrite: false, blending: THREE.NormalBlending, ...opts });   // mélange normal : visible aussi sur des murs blancs en plein jour
+    shaders.push(m); return m;
+  }
+  const VERT_UV = `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
+  // flux dans un conducteur : des impulsions filent le long du tracé, qui se dessine avec le niveau
+  const FLOW_FRAG = `uniform float uTime, uLevel, uRep, uSpeed; uniform vec3 uColor, uHot; varying vec2 vUv;
+    void main() {
+      float L = uLevel * 1.15;
+      float reveal = 1. - smoothstep(L - .05, L, vUv.x);
+      float p = fract(vUv.x * uRep - uTime * uSpeed);
+      float pulse = exp(-pow((p - .5) * 8., 2.));
+      float a = min(1., (.55 + .6 * pulse) * reveal * smoothstep(0., .12, uLevel));
+      gl_FragColor = vec4(mix(uColor, uHot, pulse * .8), a);
+    }`;
+  const flowMat = (color, hot, rep, speed) => fxMat(VERT_UV, FLOW_FRAG, { uRep: { value: rep }, uSpeed: { value: speed }, uColor: { value: new THREE.Color(color) }, uHot: { value: new THREE.Color(hot) } });
+  function flowTube(points, radius, mat) {
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map((q) => new THREE.Vector3(...q)), false, 'catmullrom', 0.05), Math.max(24, points.length * 24), radius, 8), mat);
+    m.renderOrder = 2; scene.add(m); return m;
+  }
+  // faisceau lumineux (cône) : le sommet est à la source, il s'estompe en s'éloignant et sur les bords
+  const BEAM_VERT = `uniform float uLen; varying float vH; varying vec3 vN, vV;
+    void main() { vH = -position.y / uLen; vec4 mv = modelViewMatrix * vec4(position, 1.); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`;
+  const BEAM_FRAG = `uniform float uTime, uLevel, uScan, uGain; uniform vec3 uColor; varying float vH; varying vec3 vN, vV;
+    void main() {
+      float edge = .35 + .65 * pow(abs(dot(normalize(vN), normalize(vV))), 1.2);
+      float fall = pow(1. - vH, 1.6) * smoothstep(0., .05, vH);
+      float scan = uScan * pow(.5 + .5 * sin(vH * 22. - uTime * 6.), 6.);
+      float a = min(.85, uLevel * uGain * edge * fall * (.6 + scan * 1.4));
+      gl_FragColor = vec4(uColor, a);
+    }`;
+  function beamCone(radius, len, color, scan, gain) {
+    const g = new THREE.ConeGeometry(radius, len, 48, 1, true); g.translate(0, -len / 2, 0);   // sommet à l'origine, ouverture vers -y
+    const m = new THREE.Mesh(g, fxMat(BEAM_VERT, BEAM_FRAG, { uLen: { value: len }, uScan: { value: scan }, uGain: { value: gain }, uColor: { value: new THREE.Color(color) } }, { side: THREE.DoubleSide }));
+    m.renderOrder = 3; return m;
+  }
+  // halo doux (sol, mur) : dégradé radial
+  const HALO_FRAG = `uniform float uLevel; uniform vec3 uColor; uniform float uGain; varying vec2 vUv;
+    void main() { float d = length((vUv - .5) * vec2(1., 1.)) * 2.; float a = min(1., uLevel * uGain * pow(max(0., 1. - d), 2.2)); gl_FragColor = vec4(uColor, a); }`;
+  const halo = (w, h, color, gain) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), fxMat(VERT_UV, HALO_FRAG, { uColor: { value: new THREE.Color(color) }, uGain: { value: gain } })); m.renderOrder = 1; scene.add(m); return m; };
 
   const statics = [];   // géométries fixes fusionnées à la fin, par matière
   function rbox(w, h, d, x, y, z, mat, parent = scene, r = 0.03) {
@@ -279,7 +353,16 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     }
   }
   const tbLight = L(0xffd36b, TBx, 1.7, TBz + 0.9, 3.5);
+  const yW = F0 + H - 0.14, zN = -4.86;
+  const netMat = flowMat(0xf2b600, 0xfff3b0, 7, 0.32);
+  const net = [
+    flowTube([[TBx, 2.25, zN + 0.1], [TBx, yW, zN + 0.12], [-3, yW, zN + 0.12], [-7.82, yW, zN + 0.12], [-7.82, yW, 3.6]], 0.04, netMat),
+    flowTube([[TBx, 2.25, zN + 0.1], [TBx + 0.2, yW, zN + 0.12], [3.84, yW, zN + 0.12], [3.84, yW, 3.6]], 0.04, netMat),
+    flowTube([[TBx, 2.25, zN + 0.1], [TBx + 0.25, yW - 0.12, zN + 0.12], [4.3, yW - 0.12, zN + 0.12], [9.4, yW - 0.12, zN + 0.12], [9.4, yW - 0.12, 1.6]], 0.04, netMat),
+  ];
+  const tbHalo = halo(2.4, 2.4, 0xffc94a, 0.32); tbHalo.position.set(TBx, 1.7, zN + 0.2);
   act[1] = (a) => {
+    netMat.uniforms.uLevel.value = THREE.MathUtils.smoothstep(a, 0.25, 1); tbHalo.material.uniforms.uLevel.value = a;
     leds.forEach((m, i) => { const on = a * leds.length > i + 0.5; m.material.color.set(on ? 0xf7c600 : 0xc8ccc6); m.material.emissive.set(on ? 0xc89a00 : 0x000000); });
     tbLight.intensity = a * 4;
   };
@@ -291,7 +374,8 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.34, 0.26, 32, 1, true), std(0x2a5cb3, 0.5, { side: THREE.DoubleSide }));
     shade.position.set(x, F0 + H - 1.0, z); shade.castShadow = true; scene.add(shade);
     const bulbM = glow(0xfff4dc); const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 10), bulbM); bulb.position.set(x, F0 + H - 1.08, z); scene.add(bulb);
-    pendants.push({ bulbM, light: L(0xffd59a, x, F0 + H - 1.25, z, 7) });
+    const cone = beamCone(1.0, 1.5, 0xffc857, 0, 0.9); cone.position.set(x, F0 + H - 1.1, z); scene.add(cone);
+    pendants.push({ bulbM, light: L(0xffd59a, x, F0 + H - 1.25, z, 7), cone });
   });
   const ledStrip = rbox(1.7, 0.02, 0.05, -7.07, F0 + 1.42, -4.42, glow(0xfaf7ef), scene, 0.005);
   const shutter = new THREE.Group(); shutter.position.set(-8 + T / 2 + 0.02, F0 + 2.3, -0.8); scene.add(shutter);
@@ -300,29 +384,49 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   shutter.scale.y = 0.02;
   const tablet = rbox(0.03, 0.22, 0.32, -1.52, F0 + 1.3, 0.6, glow(0x1a1d20), scene, 0.02);
   act[2] = (a, t) => {
-    pendants.forEach((p) => { p.bulbM.emissive.setRGB(2.4 * a, 1.9 * a, 1.2 * a); p.light.intensity = a * 9; });
+    pendants.forEach((p) => { p.bulbM.emissive.setRGB(2.4 * a, 1.9 * a, 1.2 * a); p.light.intensity = a * 9; p.cone.material.uniforms.uLevel.value = a; });
     ledStrip.material.emissive.setRGB(1.6 * a, 1.4 * a, 1.0 * a);
     shutter.scale.y = 0.02 + 0.98 * THREE.MathUtils.smoothstep(a, 0.3, 1);
     tablet.material.emissive.setRGB(0.05 * a, 0.25 * a, 0.75 * a);
   };
 
-  // 3. chauffage : radiateur de la chambre (mur est), il rougit et la chaleur monte
-  const RX = 3.86, RZ = 2.2;
-  const fins = [];
-  for (let i = 0; i < 9; i++) fins.push(rbox(0.1, 0.62, 0.11, RX, F0 + 0.18, RZ - 0.66 + i * 0.165, glow(0xf8f8f6), scene, 0.04));
-  rbox(0.08, 0.05, 1.5, RX, F0 + 0.12, RZ, M.white);
-  const heatL = L(0xff8a3c, RX - 0.6, F0 + 0.7, RZ, 4.5);
-  const heatN = 46, heatPos = new Float32Array(heatN * 3), heatSeed = [];
-  for (let i = 0; i < heatN; i++) heatSeed.push([RX - 0.15 - rnd() * 0.25, RZ - 0.7 + rnd() * 1.4, rnd()]);
-  const heatGeo = new THREE.BufferGeometry(); heatGeo.setAttribute('position', new THREE.BufferAttribute(heatPos, 3));
-  const dot = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
-  const heatM = new THREE.PointsMaterial({ color: 0xff9a4a, size: 0.22, map: dot, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  scene.add(new THREE.Points(heatGeo, heatM));
-  act[3] = (a, t) => {
-    fins.forEach((f, i) => { const k = THREE.MathUtils.clamp(a * 1.6 - i * 0.05, 0, 1); f.material.color.setRGB(1, 1 - 0.34 * k, 1 - 0.8 * k); f.material.emissive.setRGB(0.45 * k, 0.12 * k, 0); });
-    heatL.intensity = a * 5; heatM.opacity = 0.55 * a;
-    heatSeed.forEach(([x, z, s], i) => { const p = (t * 0.25 + s) % 1; heatPos.set([x - p * 0.25 + Math.sin(t * 2 + i) * 0.05, F0 + 0.85 + p * 1.6, z + Math.sin(t * 1.3 + i * 2) * 0.06], i * 3); });
-    heatGeo.attributes.position.needsUpdate = true;
+  // 3. chauffage : radiateur à panneau sur le mur est de la chambre ; il chauffe, l'air ondule au-dessus
+  const RX = 3.86, RZ = 2.2, RW = 1.6, RH = 0.62, RY = F0 + 0.16;
+  const radM = std(0xf7f7f5, 0.42, { emissive: 0x000000 });
+  rbox(0.07, RH, RW, RX - 0.02, RY, RZ, radM, scene, 0.025);
+  const grooveM = std(0xe3e3df, 0.5, { emissive: 0x000000 });
+  for (let i = 0; i < 15; i++) rbox(0.012, RH - 0.1, 0.035, RX - 0.062, RY + 0.05, RZ - RW / 2 + 0.1 + i * (RW - 0.2) / 14, grooveM, scene, 0.005);
+  rbox(0.05, 0.05, RW - 0.1, RX - 0.03, RY + RH - 0.02, RZ, std(0xebebe7, 0.5), scene, 0.02);          // grille supérieure
+  const knob = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.07, 20), std(0xffffff, 0.3)); knob.rotation.z = Math.PI / 2; knob.position.set(RX - 0.09, RY + RH - 0.08, RZ + RW / 2 - 0.08); scene.add(knob);
+  const knobLed = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), glow(0x444444)); knobLed.position.set(RX - 0.13, RY + RH - 0.06, RZ + RW / 2 - 0.08); scene.add(knobLed);
+  [RZ - RW / 2 + 0.15, RZ + RW / 2 - 0.15].forEach((z) => rbox(0.06, 0.12, 0.04, RX - 0.01, F0 + 0.04, z, M.steel, scene, 0.01));
+  const heatL = L(0xff7a2e, RX - 0.7, F0 + 0.9, RZ, 4.5);
+  const HEAT_FRAG = NOISE + `uniform float uTime, uLevel; varying vec2 vUv;
+    void main() {
+      vec2 uv = vUv;
+      float sway = (fbm(vec2(uv.y * 2.5 - uTime * .3, 1.7)) - .5) * .25 * uv.y;
+      vec2 q = vec2(uv.x + sway, uv.y);
+      float n = fbm(vec2(q.x * 3.4, q.y * 2.4 - uTime * .55));
+      float n2 = fbm(vec2(q.x * 7. + 3.1, q.y * 5. - uTime * 1.05));
+      float shape = smoothstep(0., .22, q.x) * (1. - smoothstep(.78, 1., q.x));
+      float wisps = smoothstep(.42, .9, n * .7 + n2 * .45 + (1. - uv.y) * .22);
+      float a = uLevel * shape * pow(1. - uv.y, 1.25) * (.18 + wisps) * smoothstep(0., .08, uv.y);
+      vec3 c = mix(vec3(1., .42, .12), vec3(1., .72, .38), wisps * (1. - uv.y));
+      gl_FragColor = vec4(c, min(.26, a * .34));
+    }`;
+  const heatMat = fxMat(VERT_UV, HEAT_FRAG);
+  const haze1 = new THREE.Mesh(new THREE.PlaneGeometry(RW + 0.1, 1.15), heatMat); haze1.rotation.y = -Math.PI / 2; haze1.position.set(RX - 0.18, RY + RH + 0.52, RZ);
+  const haze2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 1.0), heatMat); haze2.position.set(RX - 0.35, RY + RH + 0.45, RZ);
+  [haze1, haze2].forEach((h) => { h.renderOrder = 4; scene.add(h); });
+  const wallGlow = halo(2.6, 2.0, 0xff7a2e, 0.35); wallGlow.rotation.y = -Math.PI / 2; wallGlow.position.set(RX - 0.09, RY + RH * 0.7, RZ);
+  const floorGlow = halo(2.4, 2.8, 0xff8a3c, 0.25); floorGlow.rotation.x = -Math.PI / 2; floorGlow.position.set(RX - 0.8, F0 + 0.012, RZ);
+  act[3] = (a) => {
+    const k = THREE.MathUtils.smoothstep(a, 0, 0.8);
+    radM.color.setRGB(1, 1 - 0.1 * k, 1 - 0.22 * k); radM.emissive.setRGB(0.22 * k, 0.06 * k, 0.01 * k);
+    grooveM.emissive.setRGB(0.35 * k, 0.1 * k, 0.02 * k);
+    knobLed.material.emissive.set(a > 0.05 ? 0xff5a1a : 0x000000);
+    heatL.intensity = a * 5; heatMat.uniforms.uLevel.value = THREE.MathUtils.smoothstep(a, 0.2, 1);
+    wallGlow.material.uniforms.uLevel.value = k; floorGlow.material.uniforms.uLevel.value = k;
   };
 
   // 4. VMC : caisson au-dessus du cellier, gaines vers la cuisine et la salle de bain, l'air circule
@@ -337,36 +441,31 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   [[2.6, -3.0], [-5.8, -4.4]].forEach(([x, z]) => { const v = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.05, 24), M.white); v.position.set(x, 2.72, z); scene.add(v); });
   const fan = new THREE.Group(); fan.position.set(-0.2, F0 + H + 0.28, -2.84); scene.add(fan);
   for (let i = 0; i < 5; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.01), M.blue); b.position.y = 0.08; const arm = new THREE.Group(); arm.rotation.z = i * 1.2566; arm.add(b); fan.add(arm); }
-  const airN = 60, air = new THREE.InstancedMesh(new THREE.SphereGeometry(0.045, 8, 6), new THREE.MeshBasicMaterial({ color: 0x8fc2ff, transparent: true, opacity: 0 }), airN);
-  scene.add(air);
-  const tmpO = new THREE.Object3D();
+  const airMat = flowMat(0x3f86f0, 0xcfe6ff, 5, 0.42);
+  const airTubes = ducts.map((c, i) => { const m = new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.1, 12), airMat); m.renderOrder = 2; if (i < 2) m.scale.set(1, 1, 1); scene.add(m); return m; });
   let fanSpin = 0;
   act[4] = (a, t, dt) => {
     ductMeshes.forEach((m) => { const n = m.geometry.index.count; m.geometry.setDrawRange(0, Math.floor(n * THREE.MathUtils.clamp(a * 1.25, 0, 1) / 6) * 6); m.visible = a > 0.01; });
     const sc = Math.max(0.0001, THREE.MathUtils.smoothstep(a, 0, 0.35)); vmcBox.scale.setScalar(sc); fan.scale.setScalar(sc);
     fanSpin += (0.4 + a * 14) * dt; fan.rotation.z = -fanSpin;
-    air.material.opacity = 0.9 * a;
-    for (let i = 0; i < airN; i++) {
-      const c = ducts[i % 3], u = ((t * 0.22 + i / airN * 3) % 1);
-      c.getPointAt(i % 3 === 2 ? u : 1 - u, tmpO.position); tmpO.scale.setScalar(a > 0.02 ? 1 : 0.0001); tmpO.updateMatrix(); air.setMatrixAt(i, tmpO.matrix);
-    }
-    air.instanceMatrix.needsUpdate = true;
+    airMat.uniforms.uLevel.value = THREE.MathUtils.smoothstep(a, 0.3, 1);
   };
 
   // 5. alarme & interphonie : détecteur qui balaie le séjour, visiophone, caméra extérieure
   const det = rbox(0.14, 0.12, 0.14, -7.82, F0 + 2.45, -4.82, M.white, scene, 0.04);
   const detLed = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), glow(0x3a3f44)); detLed.position.set(-7.74, F0 + 2.48, -4.74); scene.add(detLed);
   const beamPivot = new THREE.Group(); beamPivot.position.set(-7.75, F0 + 2.45, -4.75); scene.add(beamPivot);
-  const beamM = new THREE.MeshBasicMaterial({ color: 0xff4a3d, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  const beam = new THREE.Mesh(new THREE.ConeGeometry(1.3, 5.2, 32, 1, true), beamM);
-  beam.rotation.x = Math.PI / 2; beam.position.z = 2.6; const beamTilt = new THREE.Group(); beamTilt.rotation.x = 0.42; beamTilt.add(beam); beamPivot.add(beamTilt);
+  // le cône part du détecteur (sommet) et s'ouvre dans la pièce ; une ligne de balayage le parcourt
+  const beam = beamCone(1.5, 5.6, 0xff3b2e, 1, 1.25);
+  beam.rotation.x = -Math.PI / 2;                   // ouverture vers +z
+  const beamTilt = new THREE.Group(); beamTilt.rotation.x = 0.45; beamTilt.add(beam); beamPivot.add(beamTilt);
   rbox(0.2, 0.32, 0.05, 0.75, F0 + 1.25, 4.13, M.dark, scene, 0.02);                 // platine extérieure
   const callBtn = rbox(0.06, 0.06, 0.03, 0.75, F0 + 1.3, 4.17, glow(0x2a5cb3), scene, 0.01);
   const visio = rbox(0.03, 0.22, 0.3, 0.7, F0 + 1.35, 3.0, glow(0x101215), scene, 0.02);  // écran intérieur (entrée)
   const camBody = rbox(0.12, 0.12, 0.3, 9.45, F0 + 2.35, 2.15, M.white, scene, 0.04);
   const camLed = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), glow(0x3a3f44)); camLed.position.set(9.45, F0 + 2.41, 2.32); scene.add(camLed);
   act[5] = (a, t) => {
-    beamM.opacity = 0.09 * a; beamPivot.rotation.y = 0.75 + Math.sin(t * 0.9) * 0.45;
+    beam.material.uniforms.uLevel.value = a; beamPivot.rotation.y = 0.78 + Math.sin(t * 0.8) * 0.42;
     const blink = a > 0.05 && Math.sin(t * 7) > 0;
     detLed.material.emissive.set(blink ? 0xff2a1a : 0x000000); camLed.material.emissive.set(a > 0.05 && Math.sin(t * 3) > 0.6 ? 0xff2a1a : 0x000000);
     visio.material.emissive.setRGB(0.15 * a, 0.35 * a, 0.8 * a);
@@ -415,17 +514,19 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   });
   rbox(0.38, 1.25, 0.28, 9.85, 0.08, 4.1, M.white, scene, 0.08);
   const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 8, 32), glow(0x3a3f44)); ring.position.set(9.66, 1.05, 4.1); ring.rotation.y = Math.PI / 2; scene.add(ring);
-  const stripes = canvasTex(128, 8, (g) => { g.fillStyle = '#26292c'; g.fillRect(0, 0, 128, 8); g.fillStyle = '#f7c600'; g.fillRect(0, 0, 28, 8); }, [6, 1]);
-  const cableM = std(0xffffff, 0.5, { map: stripes, emissive: 0x000000, emissiveMap: stripes });
-  const cable = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([[9.66, 0.95, 4.1], [9.3, 0.22, 4.5], [8.6, 0.2, 5.2], [8.0, 0.6, 5.9]].map((p) => new THREE.Vector3(...p))), 48, 0.035, 8), cableM);
+  const cablePts = [[9.66, 0.95, 4.1], [9.3, 0.22, 4.5], [8.6, 0.2, 5.2], [8.0, 0.6, 5.9]];
+  const cable = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(cablePts.map((p) => new THREE.Vector3(...p))), 48, 0.035, 8), std(0x26292c, 0.5));
   cable.castShadow = true; scene.add(cable);
+  const evMat = flowMat(0x2fb36a, 0xc8ffdd, 4, 0.7);
+  flowTube(cablePts, 0.05, evMat);
+  const evHalo = halo(1.6, 1.6, 0x2fb36a, 0.28); evHalo.rotation.x = -Math.PI / 2; evHalo.position.set(9.55, 0.1, 4.3);
   const bat = new THREE.Group(); bat.position.set(6.9, 2.55, 5.3); scene.add(bat);
   const batFrameM = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
   const batFrame = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.46), batFrameM); bat.add(batFrame);
   const cells = [];
   for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.32), new THREE.MeshBasicMaterial({ color: 0xdfe2dc, transparent: true, opacity: 0 })); c.position.set(-0.48 + i * 0.24, 0, 0.01); bat.add(c); cells.push(c); }
   act[7] = (a, t) => {
-    cableM.emissive.setRGB(a * 1.2, a * 0.95, 0); stripes.offset.x = -t * 0.8;
+    evMat.uniforms.uLevel.value = a; evHalo.material.uniforms.uLevel.value = a;
     ring.material.emissive.setRGB(0, a * (0.6 + 0.4 * Math.sin(t * 3)), a * 0.3);
     batFrameM.opacity = 0.85 * a; bat.quaternion.copy(cam.quaternion);
     const fill = a > 0.05 ? ((t * 0.35) % 1.2) : 0;
@@ -472,7 +573,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   });
 
   // ---------- post-traitement (ordinateur seulement) : occlusion ambiante et halo des lumières ----------
-  let composer = null, bloom = null, gtao = null;
+  let composer = null, bloom = null, gtao = null, grade = null;
   if (hiQ) {
     try {
       const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
@@ -483,8 +584,23 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
       composer.addPass(new RenderPass(scene, cam));
       gtao = new GTAOPass(scene, cam, 1, 1); gtao.blendIntensity = 0.85;
       gtao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.4, thickness: 1.2, scale: 1, samples: 12 });
+      // l'occlusion ne doit voir ni les effets lumineux transparents ni le ciel
+      const ov = gtao.overrideVisibility.bind(gtao);
+      gtao.overrideVisibility = function () { ov(); this.scene.traverse((o) => { if (o === sky || (o.material && o.material.transparent)) o.visible = false; }); };
       composer.addPass(gtao);
       bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0, 0.55, 0.82); composer.addPass(bloom);
+      const { ShaderPass } = await import('three/addons/postprocessing/ShaderPass.js');
+      grade = new ShaderPass({ uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uNight: { value: 0 } }, vertexShader: VERT_UV,
+        fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime, uNight; varying vec2 vUv;
+          float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+          void main() {
+            vec4 c = texture2D(tDiffuse, vUv); vec2 d = vUv - .5;
+            c.rgb *= 1. - dot(d, d) * (.5 + uNight * .45);                         // vignettage
+            c.rgb *= mix(vec3(1.02, 1., .97), vec3(.96, .99, 1.05), uNight);        // étalonnage chaud le jour, froid la nuit
+            c.rgb += (h(vUv * 900. + fract(uTime) * 37.) - .5) * .012;              // grain très léger
+            gl_FragColor = c;
+          }` });
+      composer.addPass(grade);
       composer.addPass(new OutputPass());
     } catch (e) { composer = null; }
   }
@@ -494,7 +610,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     { p: [24, 15, 27], t: [-1, 1.2, 0] },          // 0 la maison, toit en place
     { p: [0.5, 4.9, 1.6], t: [-0.2, 1.55, -4.8] },  // 1 tableau électrique
     { p: [-0.6, 8.2, 6.6], t: [-4.8, 0.8, -1.0] }, // 2 domotique, séjour
-    { p: [-1.2, 5.4, 3.4], t: [3.7, 0.7, 2.2] },   // 3 chauffage, chambre
+    { p: [-0.4, 6.6, 2.6], t: [3.6, 0.8, 2.2] },   // 3 chauffage, chambre
     { p: [5.5, 11.5, 6.5], t: [-2.2, 1.8, -3.4] },  // 4 VMC
     { p: [1.8, 7.6, 6.4], t: [-5.4, 1.3, -2.6] },  // 5 alarme
     { p: [12.5, 7.5, 22.5], t: [6.8, 1.0, 7.2] },  // 6 motorisation
@@ -511,9 +627,12 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   // ---------- lecture du défilement ----------
   let f = 0, fs = 0;      // étape courante (continue) et sa version amortie
   function readScroll() {
-    const r0 = steps[0].getBoundingClientRect(), rN = steps[N].getBoundingClientRect();
-    const c0 = r0.top + r0.height / 2, cN = rN.top + rN.height / 2, mid = innerHeight / 2;
-    f = THREE.MathUtils.clamp((mid - c0) / ((cN - c0) / N), 0, N);
+    // position continue dans la visite : interpolation entre les centres réels des étapes (hauteurs différentes)
+    const mid = innerHeight / 2, c = steps.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; });
+    if (mid <= c[0]) { f = 0; return; }
+    if (mid >= c[N]) { f = N; return; }
+    let i = 0; while (i < N - 1 && mid > c[i + 1]) i++;
+    f = i + (mid - c[i]) / (c[i + 1] - c[i]);
   }
   const ease = (x) => x * x * x * (x * (x * 6 - 15) + 10);
   const camP = new THREE.Vector3(), camT = new THREE.Vector3(), goalP = new THREE.Vector3(), goalT = new THREE.Vector3(), tmp = new THREE.Vector3();
@@ -531,7 +650,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
   controls.enabled = false; controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = true;
   controls.minPolarAngle = 0.35; controls.maxPolarAngle = 1.25; controls.rotateSpeed = 0.6;
   if (coarse) { controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: null }; }
-  let free = false;
+  let free = false, snap = false;
 
   function resize() {
     const w = stage.clientWidth, h = stage.clientHeight;
@@ -557,7 +676,7 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     // amortissement indépendant de la cadence d'images
     fs = calm ? f : fs + (f - fs) * (1 - Math.exp(-7 * dt));
     if (Math.abs(f - fs) < 0.0005) fs = f;
-    const lvl = (k) => THREE.MathUtils.clamp((fs - (k - 0.55)) / 0.45, 0, 1);
+    const lvl = (k) => k === 6 ? THREE.MathUtils.clamp((fs - (k - 0.2)) / 0.2, 0, 1) : THREE.MathUtils.clamp((fs - (k - 0.36)) / 0.32, 0, 1);   // démarre quand la caméra arrive, plein au centre de la fiche (le garage, seulement une fois arrivé)
 
     // toit et murs avant
     const r = THREE.MathUtils.clamp(fs / 0.7, 0, 1), re = ease(r);
@@ -567,14 +686,20 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
 
     // jour -> crépuscule -> nuit
     const dusk = THREE.MathUtils.smoothstep(fs, 4.2, 6.2), blueH = THREE.MathUtils.smoothstep(fs, 6.0, 7.4), night = THREE.MathUtils.smoothstep(fs, 6.4, 8.6);
-    scene.background.copy(SKY.day).lerp(SKY.dusk, dusk).lerp(SKY.blue, blueH).lerp(SKY.night, THREE.MathUtils.smoothstep(fs, 7.2, 8.8)); scene.fog.color.copy(scene.background);
+    const nk = THREE.MathUtils.smoothstep(fs, 7.2, 8.8);
+    let sc = mixSky(SKYC.day, SKYC.dusk, dusk); sc = mixSky([...sc.slice(0, 4).map((c) => c.getHex()), sc[4]], SKYC.blue, blueH); sc = mixSky([...sc.slice(0, 4).map((c) => c.getHex()), sc[4]], SKYC.night, nk);
+    skyU.uTop.value.copy(sc[0]); skyU.uHor.value.copy(sc[1]); skyU.uBot.value.copy(sc[2]); skyU.uSun.value.copy(sc[3]).multiplyScalar(sc[4]);
+    skyU.uStars.value = nk; skyU.uTime.value = t; sky.position.copy(cam.position);
+    scene.background.copy(sc[1]); scene.fog.color.copy(sc[1]);
+    shaders.forEach((m) => { m.uniforms.uTime.value = t; });
     sun.color.setHSL(0.09 - dusk * 0.04, 0.4 + dusk * 0.5, 0.9 - dusk * 0.2);
-    sun.intensity = 2.6 * (1 - night * 0.86) - dusk * 0.6; sun.position.set(14 - dusk * 20, 24 - dusk * 13 - night * 4, 12);
+    sun.intensity = 2.6 * (1 - night * 0.86) - dusk * 0.6; sun.position.set(14 - dusk * 20, 24 - dusk * 13 - night * 4, 12); skyU.uSunDir.value.copy(sun.position).normalize();
     hemi.intensity = 0.55 - night * 0.32; hemi.color.setHSL(0.6, night * 0.5, 0.85 - night * 0.5);
     scene.environmentIntensity = 0.6 - night * 0.45;
     renderer.toneMappingExposure = 1.0 + night * 0.15;
     bollards.forEach((b) => b.material.emissive.setRGB(2.2 * night, 1.8 * night, 1.0 * night)); gardenL.intensity = night * 10; houseNight.intensity = night * 14;
-    if (bloom) bloom.strength = 0.15 + night * 0.65 + dusk * 0.1;
+    if (bloom) bloom.strength = 0.18 + night * 0.7 + dusk * 0.12;
+    if (grade) { grade.uniforms.uTime.value = t; grade.uniforms.uNight.value = night; }
 
     // équipements : ils s'allument à leur étape et restent allumés ensuite
     for (let k = 1; k <= 8; k++) act[k](lvl(k), t, dt);
@@ -586,7 +711,8 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     if (free) controls.update();
     else {
       pathAt(fs, goalP, goalT);
-      camP.lerp(goalP, calm ? 1 : 1 - Math.exp(-9 * dt)); camT.lerp(goalT, calm ? 1 : 1 - Math.exp(-9 * dt));
+      const kc = calm || snap ? 1 : 1 - Math.exp(-9 * dt); snap = false;
+      camP.lerp(goalP, kc); camT.lerp(goalT, kc);
       cam.position.copy(camP); cam.lookAt(camT);
     }
 
@@ -615,5 +741,5 @@ async function boot(THREE, { GLTFLoader }, { RoundedBoxGeometry }, { RoomEnviron
     renderer.setAnimationLoop(visible ? frame : null);
   }, { threshold: 0 }).observe(stage);
   root.classList.add('is-ready');
-  window.__visite = { go: (x) => { f = fs = x; } };   // pour les vérifications automatiques
+  window.__visite = { go: (x) => { f = fs = x; }, get state() { return { f, fs }; }, settle() { fs = f; snap = true; } };   // vérifications automatiques   // pour les vérifications automatiques
 }
