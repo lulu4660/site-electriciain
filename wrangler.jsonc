@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Site statique emballé dans un Worker : python _source/worker_bundle.py puis wrangler deploy
+  "name": "site-electriciain",
+  "main": "dist/worker.js",
+  "compatibility_date": "2026-11-13",
+  "observability": { "enabled": true }
+}
