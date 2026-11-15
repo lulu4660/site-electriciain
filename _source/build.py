@@ -572,12 +572,11 @@ def page_contact():
 
 <section class="section section--flush"><div class="container">
   <div class="mapbox">
-    <div class="map" id="map" data-lat="46.207962" data-lng="5.6088978" role="region" aria-label="Carte : {ADRESSE}, {VILLE} et zone d'intervention"></div>
+    <div class="map" id="map" data-lat="46.207962" data-lng="5.6088978" role="region" aria-label="Carte : {ADRESSE}, {VILLE}"></div>
     <div class="mapcard">
       <b>{NOM}</b>
       <span>{ADRESSE}<br>{VILLE}</span>
-      <small>Zone d'intervention en jaune : Haut-Bugey, Oyonnax, Bourg-en-Bresse et tout l'Ain.</small>
-      <a class="btn btn--yellow" href="https://www.google.com/maps/dir/?api=1&amp;destination=46.207962,5.6088978" target="_blank" rel="noopener">{icon("pin")} Itinéraire</a>
+      <small>{HORAIRES}</small>
     </div>
   </div>
 </div></section>

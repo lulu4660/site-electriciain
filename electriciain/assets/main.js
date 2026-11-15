@@ -54,7 +54,7 @@
       setTimeout(function () {
         if (face && window.innerWidth > 860) face.style.viewTransitionName = 'breaker';
         window.location.href = a.href;
-      }, 640);
+      }, 430);
     });
   });
   // Retour arrière (cache de page) : retirer l'état « appuyé ».
@@ -64,6 +64,37 @@
       var f = a.querySelector('.brk__face'); if (f) f.style.viewTransitionName = '';
     });
   });
+
+  // Apparition des sections au défilement : les blocs glissent légèrement, l'un après l'autre.
+  // Les classes sont posées ici : sans JavaScript, tout reste visible.
+  var REVEAL = ['.section h2', '.section h2 + p', '.split > *', '.team .person', '.steps li', '.pledge__stamp',
+    '.pledge dl > div', '.checks li', '.aside-note', '.faq details', '.faq-grid > div > p', '.brands', '.split h3',
+    '.cta__text', '.call', '.contact-calls', '.info-list li', '.form', '.mapbox', '.gallery .shot', '.row-btns'];
+  if (!calm && 'IntersectionObserver' in window) {
+    var seen = new Set();
+    REVEAL.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        if (seen.has(el) || el.closest('.hero, .page-hero, .panel')) return;
+        seen.add(el); el.classList.add('rv');
+      });
+    });
+    // un bloc déjà animé n'anime pas aussi ses enfants (pas de double mouvement)
+    seen.forEach(function (el) {
+      if (el.parentElement && el.parentElement.closest('.rv')) { el.classList.remove('rv'); seen.delete(el); }
+    });
+    var rio = new IntersectionObserver(function (entries) {
+      var k = 0;
+      entries.forEach(function (en) {
+        // déjà dépassé (défilement très rapide) : afficher sans attendre
+        if (!en.isIntersecting && en.boundingClientRect.top < 0) { en.target.classList.add('in'); rio.unobserve(en.target); return; }
+        if (!en.isIntersecting) return;
+        en.target.style.setProperty('--rd', Math.min(k++, 6) * 90 + 'ms');
+        en.target.classList.add('in');
+        rio.unobserve(en.target);
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    seen.forEach(function (el) { rio.observe(el); });
+  }
 
   // Formulaire de contact : tant qu'aucun service d'envoi n'est branché
   // (attribut action vide), on ouvre un e-mail pré-rempli à l'adresse data-email.
@@ -128,22 +159,22 @@
   });
 })();
 
-// Carte de la page contact : fond clair, repère aux couleurs de l'entreprise, zone d'intervention.
+// Carte de la page contact : fond gris, repère aux couleurs de l'entreprise.
 window.addEventListener('load', function () {
   var el = document.getElementById('map');
   if (!el || !window.L) return;
   var pos = [+el.dataset.lat, +el.dataset.lng];
   var touch = window.matchMedia('(pointer: coarse)').matches;
-  var map = L.map(el, { scrollWheelZoom: false, dragging: !touch, tap: false, zoomControl: false, attributionControl: true }).setView(pos, 9);
+  var map = L.map(el, { scrollWheelZoom: false, dragging: !touch, tap: false, zoomControl: false, attributionControl: true }).setView(pos, 15);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
-  var zone = L.circle(pos, { radius: 48000, color: '#f7c600', weight: 2, fillColor: '#f7c600', fillOpacity: 0.12, interactive: false }).addTo(map);
   var icon = L.divIcon({ className: '', iconSize: [46, 46], iconAnchor: [23, 55],
     html: '<div class="pin"><span class="pin__halo"></span><span class="pin__dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></span></div>' });
   L.marker(pos, { icon: icon, keyboard: false, title: "Les Électrici'Ain" }).addTo(map);
   var wide = el.offsetWidth > 640;
-  map.fitBounds(L.latLng(pos).toBounds(96000), { paddingTopLeft: [wide ? 340 : 10, 10], paddingBottomRight: [10, 10] });
+  // sur ordinateur, décaler pour que le repère ne soit pas sous la carte de visite
+  if (wide) map.panBy([-170, 0], { animate: false });
 });

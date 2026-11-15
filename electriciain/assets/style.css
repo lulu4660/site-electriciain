@@ -221,9 +221,9 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 }
 
 /* Au toucher : la manette descend sur O, remonte d'un coup sur I, le voyant se rallume en grand. */
-.brk.is-pressed .brk__lever { animation: cycle .62s both; }
-.brk.is-pressed .brk__win { animation: relight .62s both; }
-.brk.is-pressed .brk__label { background: var(--yellow); transition-delay: .3s; }
+.brk.is-pressed .brk__lever { animation: cycle .4s both; }
+.brk.is-pressed .brk__win { animation: relight .4s both; }
+.brk.is-pressed .brk__label { background: var(--yellow); transition-delay: .18s; }
 .brk.is-pressed .brk__face { border-color: #7f857e; }
 @keyframes cycle {
   0%   { transform: none; animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
@@ -516,6 +516,23 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .lightbox .lb-close { top: 16px; right: 16px; }
 .lightbox .lb-prev { left: 16px; top: 50%; }
 .lightbox .lb-next { right: 16px; top: 50%; }
+
+/* ---------- Apparitions au défilement (classes .rv posées par main.js) ---------- */
+.rv { transition: opacity .7s var(--ease-out), transform .7s var(--ease-out); transition-delay: var(--rd, 0ms); }
+.rv:not(.in) { opacity: 0; transform: translateY(22px); }
+.split__img.rv:not(.in) { transform: translateY(22px) scale(.97); }
+/* étapes : la pastille apparaît, puis la ligne se trace jusqu'à l'étape suivante */
+.steps li.rv::before { transition: scale .5s cubic-bezier(.3, 1.6, .5, 1); transition-delay: calc(var(--rd, 0ms) + 150ms); }
+.steps li.rv:not(.in)::before { scale: .4; }
+.steps li.rv::after { transform-origin: left center; transition: transform .7s var(--ease-out); transition-delay: calc(var(--rd, 0ms) + 350ms); }
+.steps li.rv:not(.in)::after { transform: scaleX(0); }
+@media (max-width: 560px) { .steps li.rv::after { transform-origin: top center; } .steps li.rv:not(.in)::after { transform: scaleY(0); } }
+/* tampon garantie décennale : coup de tampon */
+.pledge__stamp.rv { transition: none; }
+.pledge__stamp.rv:not(.in) { opacity: 0; transform: none; }
+.pledge__stamp.rv.in { animation: stamp .55s cubic-bezier(.2, .9, .3, 1.2) both; animation-delay: .1s; }
+@keyframes stamp { 0% { opacity: 0; scale: 1.8; rotate: -16deg; } 60% { opacity: 1; scale: .94; rotate: -6deg; } 100% { opacity: 1; scale: 1; rotate: -7deg; } }
+.pledge__stamp { rotate: -7deg; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; animation: none !important; }
