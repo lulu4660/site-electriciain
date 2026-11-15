@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Génère les pages HTML du site Les Électrici'Ain.
 
-Modifier les textes ici puis lancer :  python _source/build.py
+Modifier les textes ici puis lancer :  python _source/build.py   (depuis la racine du dépôt)
 Les pages .html sont écrites à la racine du dossier electriciain/.
 """
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent / "electriciain"
 
 # ------------------------------------------------------------------ infos
 NOM = "Les Électrici'Ain"
@@ -530,8 +530,21 @@ def page_contact():
 """ + footer()
 
 
+def page_404():
+    # <base href="/"> : la page 404 peut être servie à n'importe quelle profondeur d'URL
+    return head(f"Page introuvable | {NOM}", "Cette page n'existe pas ou a été déplacée.", "404").replace(
+        '<meta charset="utf-8">', '<meta charset="utf-8">\n<base href="/">\n<meta name="robots" content="noindex">') + header("") + page_hero(
+        "Page introuvable", "Cette page n'existe pas",
+        "Le lien est peut-être ancien ou mal recopié. Choisissez un service ci-dessous ou revenez à l'accueil.", ctas=False) + f"""
+<section class="section section--panel"><div class="container">
+  {panel()}
+  <div class="row-btns"><a class="btn btn--blue" href="index.html">Retour à l'accueil</a></div>
+</div></section>
+""" + footer()
+
+
 def main():
-    pages = {"index.html": page_index(), "contact.html": page_contact(), "realisations.html": page_realisations()}
+    pages = {"index.html": page_index(), "404.html": page_404(), "contact.html": page_contact(), "realisations.html": page_realisations()}
     for s in SERVICES:
         pages[s["slug"] + ".html"] = page_service(s)
     for name, html in pages.items():
