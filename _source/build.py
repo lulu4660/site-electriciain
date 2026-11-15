@@ -58,7 +58,7 @@ def icon(name):
 
 # ------------------------------------------------------------------ services
 SERVICES = [
- dict(slug="electricite-generale", menu="Électricité générale", icon="bolt", img="img/depannage.webp",
+ dict(slug="electricite-generale", menu="Électricité générale", icon="bolt", img="img/photo-electricite-generale.webp",
   title="Électricité générale", city="Martignat et Bourg-en-Bresse",
   short="Installation, rénovation, mise aux normes et dépannage, en neuf comme en rénovation.",
   h1="Électricité générale dans l'Ain",
@@ -73,7 +73,7 @@ SERVICES = [
          "Recherche de panne et dépannage électrique"],
   extra_h="L'éclairage, notre petit plus",
   extra=["Vous voulez moderniser l'éclairage de votre intérieur ou installer de nouveaux luminaires ? Nous vous conseillons sur le choix des modèles (plafonniers, appliques murales, suspensions) et nous les posons proprement, raccordements compris."]),
- dict(slug="alarme-interphonie", menu="Alarme & interphonie", icon="shield", img=None,
+ dict(slug="alarme-interphonie", menu="Alarme & interphonie", icon="shield", img="img/photo-alarme-interphonie.webp",
   title="Alarme et interphonie", city="Oyonnax et Martignat",
   short="Alarmes anti-intrusion, détecteurs, vidéosurveillance, interphones et visiophones.",
   h1="Alarme & interphonie",
@@ -101,7 +101,7 @@ SERVICES = [
          "Suivi des consommations", "Installation, maintenance et dépannage"],
   extra_h="Confort et sécurité réunis",
   extra=["La domotique s'intègre à vos équipements de sécurité (caméras, capteurs, détecteurs) pour vous alerter en temps réel et déclencher les bonnes actions automatiquement."]),
- dict(slug="chauffage-electrique", menu="Chauffage électrique", icon="heat", img=None,
+ dict(slug="chauffage-electrique", menu="Chauffage électrique", icon="heat", img="img/photo-chauffage-electrique.webp",
   title="Chauffage électrique", city="Bourg-en-Bresse et Martignat",
   short="Radiateurs, planchers chauffants, régulation : installation, entretien et dépannage.",
   h1="Chauffage électrique",
@@ -128,7 +128,7 @@ SERVICES = [
          "Remplacement de VMC existante", "Entretien et dépannage"],
   extra_h="Conseil personnalisé",
   extra=["Maison, appartement, local professionnel : chaque bâtiment a ses contraintes. Nous vous conseillons la solution la plus pertinente pour votre confort et votre budget."]),
- dict(slug="motorisation-portails-garages", menu="Motorisation portails & garages", icon="gate", img="img/motorisation.webp",
+ dict(slug="motorisation-portails-garages", menu="Motorisation portails & garages", icon="gate", img="img/photo-motorisation-portails-garages.webp",
   title="Motorisation de portails et garages", city="Martignat",
   short="Portails battants ou coulissants, portes de garage : installation et réparation.",
   h1="Motorisation portails & garages",
@@ -142,7 +142,7 @@ SERVICES = [
          "Réparation et maintenance des automatismes"],
   extra_h="Le bon équipement pour votre accès",
   extra=["Selon la configuration de votre portail ou de votre garage, nous vous orientons vers la motorisation la plus adaptée, puis nous l'installons et la réglons."]),
- dict(slug="electricite-tertiaire-et-industrielle", menu="Tertiaire & industriel", icon="factory", img="img/tertiaire.jpg",
+ dict(slug="electricite-tertiaire-et-industrielle", menu="Tertiaire & industriel", icon="factory", img="img/photo-electricite-tertiaire-et-industrielle.webp",
   title="Électricité tertiaire et industrielle", city="Bourg-en-Bresse et Oyonnax",
   short="Bureaux, commerces, usines : courant fort, courant faible et maintenance.",
   h1="Électricité tertiaire & industrielle",
@@ -156,7 +156,7 @@ SERVICES = [
          "Mise à niveau et mise en conformité", "Maintenance et dépannage"],
   extra_h="Optimiser votre installation",
   extra=["Pour améliorer la performance et la fiabilité de vos équipements, confiez-nous la mise à niveau de vos installations : nous intervenons en limitant l'impact sur votre activité."]),
- dict(slug="borne-irve", menu="Borne de recharge IRVE", icon="plug", img=None,
+ dict(slug="borne-irve", menu="Borne de recharge IRVE", icon="plug", img="img/photo-borne-irve.webp",
   title="Bornes de recharge IRVE", city="Martignat",
   short="Bornes de recharge pour véhicules électriques jusqu'à 22 kW.",
   h1="Bornes de recharge IRVE",
@@ -300,7 +300,7 @@ def footer():
       <li>{HORAIRES}</li>
     </ul></div>
   </div>
-  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés.</span><span>Garantie décennale sur tous nos travaux</span></div>
+  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés. <a href="credits.html">Crédits photos</a></span><span>Garantie décennale sur tous nos travaux</span></div>
 </div></footer>
 <nav class="callbar" aria-label="Appeler">
   {"".join(f'<a href="tel:{t}">{icon("phone")}<span>Appeler<b>{n.split()[-1]}</b></span></a>' for n, d, t in CONTACTS)}
@@ -405,7 +405,7 @@ def page_index():
       <p>Celui qui établit votre devis est celui qui réalise vos travaux : pas d'intermédiaire, des installations conformes aux normes et des délais tenus.</p>
       <div class="team">{team}</div>
     </div>
-    <figure class="split__img"><img src="img/depannage.webp" alt="Intervention dans un tableau électrique" loading="lazy" width="960" height="640"></figure>
+    <figure class="split__img"><img src="img/photo-entreprise.webp" alt="Électricien au travail sur un câblage au plafond" loading="lazy" width="1500" height="1000"></figure>
   </div>
 </div></section>
 
@@ -417,16 +417,15 @@ def page_index():
 </div></section>
 
 <section class="section"><div class="container">
-  <div class="split split--top">
+  <div class="split">
     <div>
       <h2>Partout dans l'Ain</h2>
       <p>Depuis Martignat, nous intervenons dans le Haut-Bugey, autour d'Oyonnax et jusqu'à Bourg-en-Bresse : {zones}.</p>
-    </div>
-    <div>
       <h3>Du matériel de marques reconnues</h3>
       <p>Nous posons du matériel Schneider Electric, Legrand, Hager et Soler&nbsp;&amp;&nbsp;Palau, pour des installations qui durent.</p>
       <div class="brands" aria-hidden="true">{brands}</div>
     </div>
+    <figure class="split__img split__img--tall"><img src="img/photo-zone.webp" alt="Le lac de Nantua et les falaises du Haut-Bugey" loading="lazy" width="1500" height="1000"><figcaption>Le lac de Nantua, dans le Haut-Bugey</figcaption></figure>
   </div>
 </div></section>
 
@@ -480,7 +479,7 @@ def page_realisations():
 
 
 def page_service(s):
-    img_block = (f'<figure class="split__img"><img src="{s["img"]}" alt="{s["title"]} par {NOM}" loading="lazy" width="960" height="640"></figure>'
+    img_block = (f'<figure class="split__img"><img src="{s["img"]}" alt="{s["title"]}" loading="lazy" width="1500" height="1000"></figure>'
                  if s["img"] else "")
     items = "".join(f"<li>{i}</li>" for i in s["items"])
     intro = "".join(f"<p>{p}</p>" for p in s["intro"])
@@ -596,8 +595,29 @@ def page_404():
 """ + footer()
 
 
+import json as _json
+CREDITS = _json.loads((Path(__file__).resolve().parent / "credits.json").read_text(encoding="utf-8"))
+LIC_URL = {"CC0": "https://creativecommons.org/publicdomain/zero/1.0/deed.fr",
+           "CC BY-SA 2.0": "https://creativecommons.org/licenses/by-sa/2.0/deed.fr",
+           "CC BY-SA 3.0": "https://creativecommons.org/licenses/by-sa/3.0/deed.fr",
+           "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/deed.fr"}
+
+
+def page_credits():
+    rows = "".join(
+        f"""<li><img src="img/photo-{k}.webp" alt="" width="1500" height="1000" loading="lazy"><div><b>{v["title"].removeprefix("File:")}</b>
+<span>Auteur : {v["artist"] or "inconnu"}</span>
+<span>Licence : <a href="{LIC_URL.get(v["lic"], "https://creativecommons.org/licenses/")}" target="_blank" rel="noopener">{v["lic"]}</a>, via <a href="{v["page"]}" target="_blank" rel="noopener">Wikimedia Commons</a> (recadrée)</span></div></li>"""
+        for k, v in CREDITS.items())
+    return head(f"Crédits photos | {NOM}", "Auteurs et licences des photos utilisées sur le site.", "credits") + header("") + page_hero(
+        "Crédits photos", "Crédits photos",
+        "Les photos d'illustration proviennent de Wikimedia Commons, sous licences libres. Merci à leurs auteurs.", ctas=False) + f"""
+<section class="section"><div class="container"><ul class="credits">{rows}</ul></div></section>
+""" + footer()
+
+
 def main():
-    pages = {"index.html": page_index(), "404.html": page_404(), "contact.html": page_contact(), "realisations.html": page_realisations()}
+    pages = {"index.html": page_index(), "404.html": page_404(), "credits.html": page_credits(), "contact.html": page_contact(), "realisations.html": page_realisations()}
     for s in SERVICES:
         pages[s["slug"] + ".html"] = page_service(s)
     for name, html in pages.items():
