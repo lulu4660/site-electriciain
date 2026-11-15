@@ -57,7 +57,7 @@ SERVICES = [
  dict(slug="electricite-generale", menu="Électricité générale", icon="bolt", img="img/depannage.webp",
   title="Électricité générale", city="Martignat et Bourg-en-Bresse",
   short="Installation, rénovation, mise aux normes et dépannage, en neuf comme en rénovation.",
-  h1="Électricité générale <em>dans l'Ain</em>",
+  h1="Électricité générale dans l'Ain",
   lead="Installation, rénovation, mise aux normes et dépannage : nos électriciens qualifiés réalisent vos travaux avec soin, chez les particuliers comme chez les professionnels.",
   intro_h="Installation, rénovation et dépannage",
   intro=["Les Électrici'Ain propose une gamme complète de services d'électricité générale, en neuf comme en rénovation. Selon vos besoins, nous prenons en charge la remise aux normes, l'installation de réseaux électriques complets ou le simple ajout de prises.",
@@ -72,7 +72,7 @@ SERVICES = [
  dict(slug="alarme-interphonie", menu="Alarme & interphonie", icon="shield", img=None,
   title="Alarme et interphonie", city="Oyonnax et Martignat",
   short="Alarmes anti-intrusion, détecteurs, vidéosurveillance, interphones et visiophones.",
-  h1="Alarme & <em>interphonie</em>",
+  h1="Alarme & interphonie",
   lead="Nous installons, entretenons et dépannons vos systèmes d'alarme et d'interphonie pour protéger votre maison, votre commerce ou votre site industriel.",
   intro_h="Des solutions de sécurité sur mesure",
   intro=["Particulier ou professionnel, nous assurons l'installation et la maintenance de vos équipements d'alarme et d'interphonie. Chaque solution est pensée pour protéger vos bâtiments, votre matériel et vos proches contre les effractions.",
@@ -86,7 +86,7 @@ SERVICES = [
  dict(slug="domotique", menu="Domotique", icon="home", img="img/domotique.webp",
   title="Domotique", city="Martignat",
   short="Pilotez éclairage, chauffage, volets et sécurité depuis votre smartphone.",
-  h1="Domotique & <em>maison connectée</em>",
+  h1="Domotique & maison connectée",
   lead="Contrôlez et automatisez votre logement ou vos bureaux pour plus de confort et une meilleure efficacité énergétique.",
   intro_h="Votre maison devient intelligente",
   intro=["Nous concevons, installons et intégrons des systèmes domotiques adaptés à la configuration de vos locaux. Tous vos équipements se gèrent depuis une interface unique.",
@@ -100,7 +100,7 @@ SERVICES = [
  dict(slug="chauffage-electrique", menu="Chauffage électrique", icon="heat", img=None,
   title="Chauffage électrique", city="Bourg-en-Bresse et Martignat",
   short="Radiateurs, planchers chauffants, régulation : installation, entretien et dépannage.",
-  h1="Chauffage <em>électrique</em>",
+  h1="Chauffage électrique",
   lead="Nous installons, entretenons et dépannons vos systèmes de chauffage électrique pour un confort optimal et une facture maîtrisée.",
   intro_h="Installation, entretien et dépannage",
   intro=["Les Électrici'Ain prend en charge l'installation complète de votre chauffage électrique, en neuf comme en rénovation, dans les logements comme dans les locaux professionnels.",
@@ -114,7 +114,7 @@ SERVICES = [
  dict(slug="vmc", menu="VMC", icon="fan", img="img/vmc.webp",
   title="VMC", city="Oyonnax et Martignat",
   short="VMC simple flux, double flux ou hygroréglable pour un air sain toute l'année.",
-  h1="Ventilation <em>VMC</em>",
+  h1="Ventilation VMC",
   lead="Nous posons des systèmes de ventilation mécanique contrôlée performants pour un air intérieur sain et une meilleure efficacité énergétique.",
   intro_h="Un air sain, un bâtiment protégé",
   intro=["Une bonne ventilation évite l'humidité, les moisissures et préserve votre bâtiment. Nous évaluons les besoins de vos locaux et les contraintes techniques pour concevoir la ventilation qui vous convient.",
@@ -127,7 +127,7 @@ SERVICES = [
  dict(slug="motorisation-portails-garages", menu="Motorisation portails & garages", icon="gate", img="img/motorisation.webp",
   title="Motorisation de portails et garages", city="Martignat",
   short="Portails battants ou coulissants, portes de garage : installation et réparation.",
-  h1="Motorisation <em>portails & garages</em>",
+  h1="Motorisation portails & garages",
   lead="Automatisez vos accès pour gagner en confort et en sécurité au quotidien.",
   intro_h="Vos fermetures, automatisées",
   intro=["Nous installons, réparons et entretenons vos automatismes de portails et de portes de garage pour rendre l'accès à votre propriété plus pratique et plus sûr.",
@@ -141,7 +141,7 @@ SERVICES = [
  dict(slug="electricite-tertiaire-et-industrielle", menu="Tertiaire & industriel", icon="factory", img="img/tertiaire.jpg",
   title="Électricité tertiaire et industrielle", city="Bourg-en-Bresse et Oyonnax",
   short="Bureaux, commerces, usines : courant fort, courant faible et maintenance.",
-  h1="Électricité <em>tertiaire & industrielle</em>",
+  h1="Électricité tertiaire & industrielle",
   lead="Conception, installation, maintenance et mise à niveau des installations électriques de vos locaux professionnels.",
   intro_h="Votre partenaire pour les pros",
   intro=["Bureaux, commerces, ateliers, usines : nous concevons et réalisons des installations électriques performantes et sécurisées, en tenant compte de vos contraintes d'activité.",
@@ -155,7 +155,7 @@ SERVICES = [
  dict(slug="borne-irve", menu="Borne de recharge IRVE", icon="plug", img=None,
   title="Bornes de recharge IRVE", city="Martignat",
   short="Bornes de recharge pour véhicules électriques jusqu'à 22 kW.",
-  h1="Bornes de recharge <em>IRVE</em>",
+  h1="Bornes de recharge IRVE",
   lead="Nous installons des bornes de recharge pour véhicules électriques jusqu'à 22 kW, à domicile, en entreprise ou dans les lieux publics.",
   intro_h="Rechargez en toute sécurité",
   intro=["Les Électrici'Ain est spécialisé dans l'installation de bornes IRVE (Infrastructures de Recharge pour Véhicules Électriques).",
@@ -191,7 +191,7 @@ def gallery(photos):
     for i, (src, cap) in enumerate(photos):
         alt = cap or f"Réalisation {NOM} n°{i + 1}"
         figcap = f"<figcaption>{cap}</figcaption>" if cap else ""
-        items.append(f'<figure class="shot reveal"><a href="{src}" data-lightbox><img src="{src}" alt="{alt}" loading="lazy"></a>{figcap}</figure>')
+        items.append(f'<figure class="shot"><a href="{src}" data-lightbox><img src="{src}" alt="{alt}" loading="lazy"></a>{figcap}</figure>')
     return '<div class="gallery">' + "".join(items) + "</div>"
 
 
@@ -211,11 +211,12 @@ def head(title, desc, canonical):
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="website">
 <meta property="og:image" content="img/logo.webp">
-<meta name="theme-color" content="#2a5cb3">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="img/logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
 <link rel="stylesheet" href="assets/style.css">
 {SCHEMA}
 </head>
@@ -238,11 +239,11 @@ def header(active):
         f'<a href="{s["slug"]}.html"{" aria-current=\"page\"" if active == s["slug"] else ""}>{s["menu"]}</a>'
         for s in SERVICES)
     in_services = any(active == s["slug"] for s in SERVICES)
-    phones = "".join(f'<a href="tel:{t}">{icon("phone").replace("<svg", "<svg width=14 height=14 style=vertical-align:-2px")} {n} · {d}</a>'
+    phones = "".join(f'<a href="tel:{t}">{icon("phone").replace("<svg", "<svg width=14 height=14 style=vertical-align:-2px")} {n} <b>{d}</b></a>'
                      for n, d, t in CONTACTS)
-    return f"""<a class="sr-only" href="#contenu" style="position:absolute;left:-9999px">Aller au contenu</a>
+    return f"""<a class="skip" href="#contenu">Aller au contenu</a>
 <div class="topbar"><div class="container">
-  <span>{HORAIRES} · Garantie décennale</span>
+  <span>{HORAIRES}, garantie décennale sur tous les travaux</span>
   <span class="topbar__phones">{phones}</span>
 </div></div>
 <header class="header"><div class="container">
@@ -265,20 +266,18 @@ def header(active):
 
 
 def cta():
-    n, d, t = CONTACTS[0]
+    calls = "".join(f'<a class="call" href="tel:{t}"><span>Appeler {n}</span><b>{d}</b></a>' for n, d, t in CONTACTS)
     return f"""<section class="cta"><div class="container">
-  <div><h2>Un projet ? Une panne ?</h2><p>Devis gratuit et réponse rapide. Appelez-nous ou écrivez-nous.</p></div>
-  <div class="cta__btns">
-    <a class="btn btn--blue" href="tel:{t}">{icon("phone")} {d}</a>
-    <a class="btn btn--ghost" href="contact.html">Demander un devis</a>
-  </div>
+  <div class="cta__text"><h2>Une panne, un projet&nbsp;?</h2><p>Appelez directement l'un des deux associés, ou décrivez votre besoin et nous vous rappelons.</p>
+  <a class="btn btn--ink" href="contact.html">Demander un devis par écrit</a></div>
+  <div class="cta__calls">{calls}</div>
 </div></section>
 """
 
 
 def footer():
     svc = "".join(f'<li><a href="{s["slug"]}.html">{s["menu"]}</a></li>' for s in SERVICES)
-    ppl = "".join(f'<li>{n} : <a href="tel:{t}">{d}</a></li>' for n, d, t in CONTACTS)
+    ppl = "".join(f'<li>{n}<br><a class="footer__tel" href="tel:{t}">{d}</a></li>' for n, d, t in CONTACTS)
     return f"""</main>
 <footer class="footer"><div class="container">
   <div class="footer__grid">
@@ -297,7 +296,7 @@ def footer():
       <li>{HORAIRES}</li>
     </ul></div>
   </div>
-  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés.</span><span>Travaux couverts par la garantie décennale</span></div>
+  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés.</span><span>Garantie décennale sur tous nos travaux</span></div>
 </div></footer>
 <div class="callbar">
   {"".join(f'<a class="btn btn--{c}" href="tel:{t}">{icon("phone")} {n.split()[-1]}</a>' for (n, d, t), c in zip(CONTACTS, ["yellow", "blue"]))}
@@ -308,95 +307,85 @@ def footer():
 """
 
 
-def service_cards(exclude=None):
-    out = []
-    for s in SERVICES:
-        if s["slug"] == exclude:
-            continue
-        out.append(f"""<a class="card reveal" href="{s["slug"]}.html">
-  <span class="card__icon">{icon(s["icon"])}</span>
-  <h3>{s["title"]}</h3><p>{s["short"]}</p>
-  <span class="card__more">En savoir plus {icon("arrow")}</span>
-</a>""")
-    return "\n".join(out)
+def panel(exclude=None, animate=False):
+    """Les services présentés comme les disjoncteurs d'un tableau électrique."""
+    mods = []
+    for s_ in [x for x in SERVICES if x["slug"] != exclude]:
+        mods.append(f"""<li style="--i:{len(mods)}"><a class="brk" href="{s_["slug"]}.html">
+  <span class="brk__label">{s_["title"]}</span>
+  <span class="brk__face" aria-hidden="true"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span>
+  <span class="brk__desc">{s_["short"]}</span>
+</a></li>""")
+    attr = " data-power" if animate else ""
+    return f'<div class="panel"{attr}><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
+
+
+def breaker(s_):
+    """Un disjoncteur seul, décoratif, pour l'en-tête des pages services."""
+    return f"""<div class="solo" aria-hidden="true"><span class="brk__label">{s_["title"]}</span>
+<span class="brk__face"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span></div>"""
 
 
 def perks():
-    data = [("award", "Garantie décennale", "Tous nos travaux sont couverts."),
-            ("users", "Deux associés", "Des interlocuteurs directs, sur chaque chantier."),
-            ("clock", "6 jours sur 7", "Du lundi au samedi, de 8 h à 19 h."),
-            ("check", "Devis gratuit", "Un prix clair, adapté à votre budget.")]
-    return '<div class="perks reveal">' + "".join(
-        f'<div class="perk">{icon(i)}<strong>{t}</strong><span>{d}</span></div>' for i, t, d in data) + "</div>"
+    data = [("Garantie décennale", "Tous nos travaux sont assurés pendant dix ans."),
+            ("Devis gratuit", "Un prix clair avant le début du chantier, sans surprise."),
+            ("Six jours sur sept", "Joignables du lundi au samedi, de 8 h à 19 h."),
+            ("Deux associés", "Ceux qui font le devis sont ceux qui font le chantier.")]
+    items = "".join(f"<div><dt>{t}</dt><dd>{d}</dd></div>" for t, d in data)
+    return f"""<div class="pledge"><img class="pledge__stamp" src="img/decennale.webp" alt="Garantie décennale" width="512" height="346" loading="lazy"><dl>{items}</dl></div>"""
 
 
 # ------------------------------------------------------------------ pages
 def page_index():
-    team = "".join(f"""<div class="person"><span class="person__avatar">{n.split()[-1][0]}</span>
-<div><b>{n}</b><span>Associé · </span><a href="tel:{t}">{d}</a></div></div>""" for n, d, t in CONTACTS)
-    brands = "".join(f'<img src="{p}" alt="Marque partenaire" loading="lazy" width="300" height="134">' for p in PARTENAIRES)
-    zones = "".join(f"<li>{z}</li>" for z in ZONES)
+    team = "".join(f"""<div class="person"><span class="person__name">{n}</span><a class="person__tel" href="tel:{t}">{d}</a></div>""" for n, d, t in CONTACTS)
+    brands = "".join(f'<img src="{p}" alt="" loading="lazy" width="300" height="134">' for p in PARTENAIRES)
+    zones = ", ".join(ZONES[:-1]) + " et " + ZONES[-1].lower()
     return head(f"Électricien à Martignat (01) | {NOM}",
                 "Les Électrici'Ain, société d'électricité à Martignat : électricité générale, domotique, chauffage, VMC, alarme, bornes IRVE. Particuliers et pros dans l'Ain. Devis gratuit.",
                 "") + header("index") + f"""
-<section class="hero">
-  <div class="hero__bg"><img src="img/depannage.webp" alt="" fetchpriority="high"></div>
-  <div class="container">
-    <span class="eyebrow">Électriciens à Martignat · Ain</span>
-    <h1>Votre électricité, <em>entre de bonnes mains</em></h1>
-    <p class="lead">Installation, rénovation et dépannage électrique pour les particuliers et les professionnels de l'Ain. Des installations sûres, performantes et garanties dix ans.</p>
-    <div class="hero__ctas">
-      <a class="btn btn--yellow" href="contact.html">Demander un devis gratuit</a>
-      <a class="btn btn--ghost" href="tel:{CONTACTS[0][2]}">{icon("phone")} {CONTACTS[0][1]}</a>
-    </div>
-    <div class="hero__badges">
-      <div>{icon("award")} Garantie décennale</div>
-      <div>{icon("clock")} Lun. au sam., 8 h à 19 h</div>
-      <div>{icon("pin")} Martignat, Oyonnax, Bourg-en-Bresse</div>
+<section class="hero"><div class="container">
+  <div class="hero__head">
+    <h1>Électriciens à Martignat, pour les maisons et les entreprises de l'Ain</h1>
+    <div class="hero__side">
+      <p class="lead">Installation, rénovation, mise aux normes et dépannage. Deux associés qui répondent eux-mêmes au téléphone et viennent eux-mêmes sur le chantier.</p>
+      <div class="hero__ctas">
+        <a class="btn btn--yellow" href="contact.html">Demander un devis gratuit</a>
+        <a class="btn btn--line" href="tel:{CONTACTS[0][2]}">{icon("phone")} {CONTACTS[0][1]}</a>
+      </div>
     </div>
   </div>
-</section>
-
-<section class="section"><div class="container">
-  <span class="eyebrow">Nos services</span>
-  <h2>Tous vos travaux d'électricité</h2>
-  <p class="lead">Résidentiel, tertiaire ou industriel : en neuf comme en rénovation, nous vous proposons des solutions adaptées à votre budget et aux besoins de votre bâtiment.</p>
-  <div class="services">{service_cards()}</div>
+  <h2 class="sr-only">Nos services</h2>
+  {panel(animate=True)}
 </div></section>
 
 {teaser()}
-<section class="section section--alt" id="entreprise"><div class="container">
+<section class="section" id="entreprise"><div class="container">
   <div class="split">
-    <div class="reveal">
-      <span class="eyebrow">L'entreprise</span>
-      <h2>Deux associés passionnés</h2>
-      <p>Les Électrici'Ain est une société d'électricité implantée à Martignat. Fondée par deux associés passionnés, elle intervient auprès des particuliers et des professionnels dans tout l'Ain.</p>
-      <p>Quelle que soit l'ampleur de votre projet, nos électriciens qualifiés, formés aux dernières technologies et aux normes de sécurité les plus strictes, vous garantissent un travail soigné, conforme et respectueux des délais.</p>
+    <div>
+      <h2>Deux associés, un seul interlocuteur</h2>
+      <p>Les Électrici'Ain est une société d'électricité installée à Martignat. Ses deux associés interviennent chez les particuliers comme chez les professionnels, partout dans l'Ain.</p>
+      <p>Celui qui établit votre devis est celui qui réalise vos travaux : pas d'intermédiaire, des installations conformes aux normes et des délais tenus.</p>
       <div class="team">{team}</div>
     </div>
-    <div class="split__img reveal"><img src="img/tertiaire.jpg" alt="Électricien des Électrici'Ain au travail sur une installation" loading="lazy"></div>
+    <figure class="split__img"><img src="img/depannage.webp" alt="Intervention dans un tableau électrique" loading="lazy" width="960" height="640"></figure>
   </div>
 </div></section>
 
-<section class="section"><div class="container">
-  <span class="eyebrow">Pourquoi nous choisir</span>
-  <h2>Un travail fiable, garanti</h2>
-  <p class="lead" style="margin-bottom:36px">Tous nos travaux sont couverts par la garantie décennale, gage de la fiabilité et de la durabilité de nos installations.</p>
+<section class="section section--alt"><div class="container">
+  <h2>Ce sur quoi vous pouvez compter</h2>
   {perks()}
 </div></section>
 
-<section class="section section--alt"><div class="container">
+<section class="section"><div class="container">
   <div class="split split--top">
-    <div class="reveal">
-      <span class="eyebrow">Zone d'intervention</span>
+    <div>
       <h2>Partout dans l'Ain</h2>
-      <p>Basés à Martignat, nous intervenons dans le Haut-Bugey, la région d'Oyonnax et jusqu'à Bourg-en-Bresse.</p>
-      <ul class="zones">{zones}</ul>
+      <p>Depuis Martignat, nous intervenons dans le Haut-Bugey, autour d'Oyonnax et jusqu'à Bourg-en-Bresse : {zones}.</p>
     </div>
-    <div class="reveal">
-      <span class="eyebrow">Nos marques partenaires</span>
-      <p>Nous posons du matériel de marques reconnues pour des installations durables.</p>
-      <div class="brands">{brands}</div>
+    <div>
+      <h3>Du matériel de marques reconnues</h3>
+      <p>Nous posons du matériel Schneider Electric, Legrand, Hager et Soler&nbsp;&amp;&nbsp;Palau, pour des installations qui durent.</p>
+      <div class="brands" aria-hidden="true">{brands}</div>
     </div>
   </div>
 </div></section>
@@ -407,13 +396,29 @@ def teaser():
     photos = realisations()
     if not photos:
         return ""
-    more = f'<a class="btn btn--blue" href="realisations.html">Voir toutes nos réalisations ({len(photos)})</a>' if len(photos) > 6 else ""
-    return f"""<section class="section" style="padding-top:0"><div class="container">
-  <span class="eyebrow">Nos réalisations</span>
+    more = f'<a class="btn btn--blue" href="realisations.html">Voir les {len(photos)} réalisations</a>' if len(photos) > 6 else ""
+    return f"""<section class="section"><div class="container">
   <h2>Nos derniers chantiers</h2>
   {gallery(photos[:6])}
-  <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap">{more}
-    <a class="btn btn--ghost" style="color:var(--ink)" href="{INSTAGRAM}" target="_blank" rel="noopener">{icon("ig")} Suivez-nous sur Instagram</a></div>
+  <div class="row-btns">{more}
+    <a class="btn btn--line" href="{INSTAGRAM}" target="_blank" rel="noopener">{icon("ig")} Suivre sur Instagram</a></div>
+</div></section>"""
+
+
+def page_hero(crumb, h1, lead, aside="", ctas=True, note=""):
+    btns = f"""<div class="hero__ctas">
+    <a class="btn btn--yellow" href="contact.html">Demander un devis</a>
+    <a class="btn btn--line" href="tel:{CONTACTS[0][2]}">{icon("phone")} {CONTACTS[0][1]}</a>
+  </div>""" if ctas else ""
+    note = f'<p class="page-hero__note">{note}</p>' if note else ""
+    return f"""<section class="page-hero"><div class="container">
+  <div class="page-hero__text">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a> <span aria-hidden="true">/</span> {crumb}</nav>
+    <h1>{h1}</h1>
+    <p class="lead">{lead}</p>
+    {btns}{note}
+  </div>
+  {aside}
 </div></section>"""
 
 
@@ -422,47 +427,32 @@ def page_realisations():
     body = gallery(photos) if photos else '<p class="lead">Les photos de nos chantiers arrivent bientôt. En attendant, retrouvez nos réalisations sur Instagram.</p>'
     return head(f"Nos réalisations | {NOM}",
                 "Découvrez les chantiers des Électrici'Ain : installations électriques, tableaux, domotique, bornes de recharge et motorisations dans l'Ain.",
-                "realisations") + header("realisations") + f"""
-<section class="page-hero"><div class="container">
-  <nav class="crumbs" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a> / Réalisations</nav>
-  <span class="eyebrow">Nos chantiers</span>
-  <h1>Nos <em>réalisations</em></h1>
-  <p class="lead">Un aperçu de nos installations chez les particuliers et les professionnels de l'Ain.</p>
-</div></section>
+                "realisations") + header("realisations") + page_hero(
+        "Réalisations", "Nos réalisations",
+        "Quelques installations réalisées chez des particuliers et des professionnels de l'Ain.", ctas=False) + f"""
 <section class="section"><div class="container">
   {body}
-  <div style="margin-top:36px"><a class="btn btn--blue" href="{INSTAGRAM}" target="_blank" rel="noopener">{icon("ig")} Plus de photos sur Instagram</a></div>
+  <div class="row-btns"><a class="btn btn--blue" href="{INSTAGRAM}" target="_blank" rel="noopener">{icon("ig")} Plus de photos sur Instagram</a></div>
 </div></section>
 """ + cta() + footer()
 
 
 def page_service(s):
-    img_block = (f'<div class="split__img reveal"><img src="{s["img"]}" alt="{s["title"]} par {NOM}" loading="lazy"></div>'
-                 if s["img"] else
-                 f"""<div class="reveal" style="background:var(--blue-soft);border-radius:var(--radius);padding:40px;display:grid;place-items:center;min-height:300px;color:var(--blue)">
-<div style="text-align:center"><div style="width:96px;height:96px;margin:0 auto 18px;background:var(--yellow);color:var(--ink);border-radius:24px;display:grid;place-items:center">{icon(s["icon"]).replace("<svg", "<svg width=52 height=52")}</div>
-<h3 style="margin:0">{s["title"]}</h3><p style="margin:6px 0 0;color:var(--ink-2)">Devis gratuit · Garantie décennale</p></div></div>""")
+    img_block = (f'<figure class="split__img"><img src="{s["img"]}" alt="{s["title"]} par {NOM}" loading="lazy" width="960" height="640"></figure>'
+                 if s["img"] else "")
     items = "".join(f"<li>{i}</li>" for i in s["items"])
     intro = "".join(f"<p>{p}</p>" for p in s["intro"])
     extra = "".join(f"<p>{p}</p>" for p in s["extra"])
+    split_cls = "split" if s["img"] else "split split--text"
     return head(f"{s['title']} à {s['city'].split(' et ')[0]} (01) | {NOM}",
                 f"{s['short']} {NOM}, électriciens à Martignat, interviennent dans l'Ain. Devis gratuit.",
-                s["slug"]) + header(s["slug"]) + f"""
-<section class="page-hero"><div class="container">
-  <nav class="crumbs" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a> / {s["title"]}</nav>
-  <span class="eyebrow">{s["city"]} · Ain</span>
-  <h1>{s["h1"]}</h1>
-  <p class="lead">{s["lead"]}</p>
-  <div class="hero__ctas" style="margin-top:28px">
-    <a class="btn btn--yellow" href="contact.html">Demander un devis</a>
-    <a class="btn btn--ghost" href="tel:{CONTACTS[0][2]}">{icon("phone")} {CONTACTS[0][1]}</a>
-  </div>
-</div></section>
+                s["slug"]) + header(s["slug"]) + page_hero(
+        s["title"], s["h1"], s["lead"], aside=breaker(s),
+        note=f"Intervention à {s['city']} et dans tout l'Ain.") + f"""
 
 <section class="section"><div class="container">
-  <div class="split">
-    <div class="reveal">
-      <span class="eyebrow">{s["title"]}</span>
+  <div class="{split_cls}">
+    <div>
       <h2>{s["intro_h"]}</h2>
       {intro}
     </div>
@@ -472,72 +462,68 @@ def page_service(s):
 
 <section class="section section--alt"><div class="container">
   <div class="split split--top">
-    <div class="reveal">
+    <div>
       <h2>{s["list_h"]}</h2>
       <ul class="checks">{items}</ul>
     </div>
-    <div class="reveal">
-      <h2>{s["extra_h"]}</h2>
+    <div class="aside-note">
+      <h3>{s["extra_h"]}</h3>
       {extra}
-      <a class="btn btn--blue" href="contact.html" style="margin-top:8px">Nous contacter</a>
+      <a class="btn btn--blue" href="contact.html">Nous contacter</a>
     </div>
   </div>
 </div></section>
 
 <section class="section"><div class="container">
+  <h2>Ce sur quoi vous pouvez compter</h2>
   {perks()}
 </div></section>
 
-<section class="section section--alt"><div class="container">
-  <span class="eyebrow">Nos autres services</span>
-  <h2>Nous faisons aussi</h2>
-  <div class="services">{service_cards(exclude=s["slug"])}</div>
+<section class="section section--panel"><div class="container">
+  <h2>Nos autres services</h2>
+  {panel(exclude=s["slug"])}
 </div></section>
 """ + cta() + footer()
 
 
 def page_contact():
     opts = "".join(f"<option>{s['title']}</option>" for s in SERVICES) + "<option>Dépannage</option><option>Autre</option>"
-    ppl = "".join(f'<a href="tel:{t}">{n} · {d}</a><br>' for n, d, t in CONTACTS)
+    ppl = "".join(f'<a class="person__tel" href="tel:{t}">{d}</a><span class="person__name">{n}</span>' for n, d, t in CONTACTS)
     return head(f"Contact et devis gratuit | {NOM}",
                 "Contactez Les Électrici'Ain à Martignat pour un devis gratuit : 06 46 24 50 05 ou 06 25 62 59 87. Du lundi au samedi, de 8 h à 19 h.",
-                "contact") + header("contact") + f"""
-<section class="page-hero"><div class="container">
-  <nav class="crumbs" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a> / Contact</nav>
-  <span class="eyebrow">Devis gratuit</span>
-  <h1>Parlons de <em>votre projet</em></h1>
-  <p class="lead">Laissez-nous votre demande ou appelez-nous directement : nous vous répondons dans les plus brefs délais.</p>
-</div></section>
+                "contact") + header("contact") + page_hero(
+        "Contact", "Parlons de votre projet",
+        "Appelez-nous directement ou laissez-nous votre demande : nous vous rappelons rapidement.", ctas=False) + f"""
 
 <section class="section"><div class="container contact-grid">
-  <div class="reveal">
-    <h2>Nos coordonnées</h2>
-    <ul class="info-list" style="margin-top:24px">
-      <li><span class="ico">{icon("phone")}</span><div><b>Téléphone</b>{ppl}</div></li>
+  <div>
+    <h2>Par téléphone</h2>
+    <div class="contact-calls">{ppl}</div>
+    <ul class="info-list">
       <li><span class="ico">{icon("pin")}</span><div><b>Adresse</b><a href="{GMAPS}" target="_blank" rel="noopener">{ADRESSE}<br>{VILLE}</a></div></li>
       <li><span class="ico">{icon("clock")}</span><div><b>Horaires</b>{HORAIRES}</div></li>
       <li><span class="ico">{icon("award")}</span><div><b>Garantie</b>Tous nos travaux sont couverts par la garantie décennale.</div></li>
     </ul>
   </div>
-  <form class="form reveal" action="" method="post" data-email="{EMAIL}">
-    <h2 style="font-size:2rem">Demande de devis</h2>
+  <form class="form" action="" method="post" data-email="{EMAIL}">
+    <h2>Demande de devis</h2>
     <div class="form__row">
       <div class="field"><label for="nom">Nom et prénom *</label><input id="nom" name="nom" required autocomplete="name"></div>
-      <div class="field"><label for="tel">Téléphone *</label><input id="tel" name="tel" type="tel" required autocomplete="tel"></div>
+      <div class="field"><label for="tel">Téléphone *</label><input id="tel" name="tel" type="tel" required autocomplete="tel" inputmode="tel"></div>
     </div>
     <div class="form__row">
-      <div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email"></div>
+      <div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" spellcheck="false"></div>
       <div class="field"><label for="ville">Commune</label><input id="ville" name="ville" autocomplete="address-level2"></div>
     </div>
     <div class="field"><label for="service">Prestation</label><select id="service" name="service">{opts}</select></div>
-    <div class="field"><label for="message">Votre demande *</label><textarea id="message" name="message" required placeholder="Décrivez votre projet ou votre panne…"></textarea></div>
-    <button class="btn btn--yellow" type="submit" style="width:100%">Envoyer ma demande</button>
-    <p class="form__note" hidden style="margin:14px 0 0;padding:12px 14px;background:var(--yellow-soft);border-radius:10px;color:var(--ink)">L'envoi en ligne n'est pas encore activé. Appelez-nous au <a href="tel:{CONTACTS[0][2]}">{CONTACTS[0][1]}</a> ou au <a href="tel:{CONTACTS[1][2]}">{CONTACTS[1][1]}</a>.</p>
+    <div class="field"><label for="message">Votre demande *</label><textarea id="message" name="message" required placeholder="Par exemple : remplacement du tableau électrique d'une maison de 1980"></textarea></div>
+    <button class="btn btn--yellow btn--block" type="submit">Envoyer ma demande</button>
+    <p class="form__note" hidden>L'envoi en ligne n'est pas encore activé. Appelez-nous au <a href="tel:{CONTACTS[0][2]}">{CONTACTS[0][1]}</a> ou au <a href="tel:{CONTACTS[1][2]}">{CONTACTS[1][1]}</a>.</p>
     <small>* Champs obligatoires. Vos informations servent uniquement à répondre à votre demande.</small>
   </form>
 </div></section>
 
-<section class="section section--alt" style="padding-top:0;background:none"><div class="container">
+<section class="section section--flush"><div class="container">
   <iframe class="map" title="Plan d'accès : {ADRESSE}, {VILLE}" loading="lazy"
     src="https://www.openstreetmap.org/export/embed.html?bbox=5.5889%2C46.1980%2C5.6289%2C46.2180&amp;layer=mapnik&amp;marker=46.207962%2C5.6088978"></iframe>
 </div></section>

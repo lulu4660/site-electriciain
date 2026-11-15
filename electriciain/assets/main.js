@@ -1,4 +1,4 @@
-// Menu mobile, sous-menu services, apparition au défilement, formulaire.
+// Menu mobile, sous-menu services, mise sous tension du tableau, formulaire.
 (function () {
   var burger = document.querySelector('.burger');
   var nav = document.querySelector('.nav');
@@ -23,17 +23,15 @@
     });
   });
 
-  var items = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window) {
+  // Mise sous tension du tableau : les manettes basculent une à une, une seule fois.
+  document.querySelectorAll('[data-power]').forEach(function (panel) {
+    function on() { setTimeout(function () { panel.classList.add('is-on'); }, 250); }
+    if (!('IntersectionObserver' in window)) return panel.classList.add('is-on');
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
-      });
-    }, { threshold: 0.12 });
-    items.forEach(function (el) { io.observe(el); });
-  } else {
-    items.forEach(function (el) { el.classList.add('in'); });
-  }
+      if (entries[0].isIntersecting) { on(); io.disconnect(); }
+    }, { threshold: 0.35 });
+    io.observe(panel);
+  });
 
   // Formulaire de contact : tant qu'aucun service d'envoi n'est branché
   // (attribut action vide), on ouvre un e-mail pré-rempli à l'adresse data-email.
