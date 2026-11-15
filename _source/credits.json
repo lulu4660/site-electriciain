@@ -1,11 +1,12 @@
 {
  "entreprise": {
-  "title": "File:Electrician at work (2).jpg",
-  "page": "https://commons.wikimedia.org/wiki/File:Electrician_at_work_(2).jpg",
-  "lic": "CC BY-SA 4.0",
-  "artist": "Sid Mbog",
-  "w": 6016,
-  "h": 4016
+  "title": "File:Fuse box for garage.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File:Fuse_box_for_garage.JPG",
+  "lic": "CC BY-SA 3.0",
+  "artist": "Dmitry G",
+  "w": 3648,
+  "h": 2736,
+  "done2": true
  },
  "electricite-generale": {
   "title": "File:Модульные блоки защиты российских брендов.jpg",
@@ -62,5 +63,14 @@
   "artist": "Florian Pépellin",
   "w": 3072,
   "h": 2304
+ },
+ "domotique": {
+  "title": "File:TP-Link-Kasa-Amazon-Alexa-Zubehör-Smart-Home-WLAN-Steckdose-HS110.2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:TP-Link-Kasa-Amazon-Alexa-Zubeh%C3%B6r-Smart-Home-WLAN-Steckdose-HS110.2.jpg",
+  "lic": "CC BY 4.0",
+  "artist": "www.digitalpush.net",
+  "w": 4032,
+  "h": 3024,
+  "done2": true
  }
 }

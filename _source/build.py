@@ -87,7 +87,7 @@ SERVICES = [
          "Maintenance et dépannage"],
   extra_h="Protégé 24 h/24, 7 j/7",
   extra=["Résidentiel, commercial ou industriel : nous concevons un système d'alarme efficace et fiable, adapté à la configuration de vos locaux, pour une protection de jour comme de nuit."]),
- dict(slug="domotique", menu="Domotique", icon="home", img="img/domotique.webp",
+ dict(slug="domotique", menu="Domotique", icon="home", img="img/photo-domotique.webp",
   title="Domotique", city="Martignat",
   short="Pilotez éclairage, chauffage, volets et sécurité depuis votre smartphone.",
   h1="Domotique & maison connectée",
@@ -405,7 +405,7 @@ def page_index():
       <p>Celui qui établit votre devis est celui qui réalise vos travaux : pas d'intermédiaire, des installations conformes aux normes et des délais tenus.</p>
       <div class="team">{team}</div>
     </div>
-    <figure class="split__img"><img src="img/photo-entreprise.webp" alt="Électricien au travail sur un câblage au plafond" loading="lazy" width="1500" height="1000"></figure>
+    <figure class="split__img"><img src="img/photo-entreprise.webp" alt="Tableau électrique ouvert, câblé proprement" loading="lazy" width="1500" height="1000"></figure>
   </div>
 </div></section>
 
@@ -598,6 +598,7 @@ def page_404():
 import json as _json
 CREDITS = _json.loads((Path(__file__).resolve().parent / "credits.json").read_text(encoding="utf-8"))
 LIC_URL = {"CC0": "https://creativecommons.org/publicdomain/zero/1.0/deed.fr",
+           "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/deed.fr",
            "CC BY-SA 2.0": "https://creativecommons.org/licenses/by-sa/2.0/deed.fr",
            "CC BY-SA 3.0": "https://creativecommons.org/licenses/by-sa/3.0/deed.fr",
            "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/deed.fr"}
