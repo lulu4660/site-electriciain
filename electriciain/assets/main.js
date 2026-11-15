@@ -44,26 +44,95 @@
     units.forEach(function (el) { io.observe(el); });
   }
 
-  // Au toucher d'un disjoncteur : « clac », voyant qui brille, puis la page du service.
+  // Au toucher d'un disjoncteur : « clac », voyant qui brille, puis le volet du coffret
+  // s'ouvre sur place et montre le service. Sans JavaScript (ou Ctrl-clic), le lien
+  // mène simplement à la page du service.
+  var volet = null, lastBrk = null, openSlug = null;
+  function buildVolet() {
+    volet = document.createElement('div');
+    volet.className = 'volet';
+    volet.hidden = true;
+    volet.setAttribute('role', 'dialog');
+    volet.setAttribute('aria-modal', 'true');
+    volet.innerHTML = '<div class="volet__backdrop"></div>' +
+      '<div class="volet__cabinet"><div class="volet__inside">' +
+      '<button class="volet__close" type="button" aria-label="Fermer">&times;</button>' +
+      '<div class="volet__content"></div></div>' +
+      '<div class="volet__door" aria-hidden="true"><span class="volet__tag"></span><span class="volet__handle"></span></div></div>';
+    document.body.appendChild(volet);
+    volet.querySelector('.volet__backdrop').addEventListener('click', function () { closeVolet(true); });
+    volet.querySelector('.volet__close').addEventListener('click', function () { closeVolet(true); });
+    volet.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); closeVolet(true); }
+      if (e.key === 'Tab') {   // garder le focus dans le volet
+        var f = volet.querySelectorAll('a[href], button');
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+  }
+  function openVolet(slug, push) {
+    var tpl = document.getElementById('volet-' + slug);
+    if (!tpl) return false;
+    if (!volet) buildVolet();
+    var content = volet.querySelector('.volet__content');
+    content.innerHTML = '';
+    content.appendChild(tpl.content.cloneNode(true));
+    var title = content.querySelector('.vc__title');
+    title.id = 'volet-title';
+    volet.setAttribute('aria-labelledby', 'volet-title');
+    volet.querySelector('.volet__tag').textContent = tpl.dataset.title;
+    volet.querySelector('.volet__inside').scrollTop = 0;
+    volet.hidden = false;
+    document.documentElement.classList.add('volet-lock');
+    void volet.offsetWidth;            // relancer les transitions
+    volet.classList.remove('is-closing');
+    volet.classList.add('is-open');
+    openSlug = slug;
+    if (push) history.pushState({ volet: slug }, '', '#' + slug);
+    setTimeout(function () { volet.querySelector('.volet__close').focus({ preventScroll: true }); }, calm ? 0 : 700);
+    return true;
+  }
+  function closeVolet(viaHistory) {
+    if (!volet || !openSlug) return;
+    if (viaHistory && history.state && history.state.volet) { history.back(); return; }  // popstate refermera
+    openSlug = null;
+    volet.classList.remove('is-open');
+    volet.classList.add('is-closing');
+    setTimeout(function () {
+      volet.hidden = true;
+      volet.classList.remove('is-closing');
+      document.documentElement.classList.remove('volet-lock');
+      if (!viaHistory && location.hash && document.getElementById('volet-' + location.hash.slice(1)))
+        history.replaceState(null, '', location.pathname + location.search);
+    }, calm ? 0 : 480);
+    if (lastBrk) { lastBrk.classList.remove('is-pressed'); lastBrk.focus({ preventScroll: true }); }
+  }
+  window.addEventListener('popstate', function (e) {
+    var h = location.hash.slice(1);
+    var slug = (e.state && e.state.volet) || (h && document.getElementById('volet-' + h) ? h : null);
+    if (slug && slug !== openSlug) openVolet(slug, false);
+    else if (!slug && openSlug) closeVolet(false);
+  });
+
   document.querySelectorAll('a.brk').forEach(function (a) {
     a.addEventListener('click', function (e) {
-      if (calm || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      var slug = a.getAttribute('href').replace('.html', '');
+      if (!document.getElementById('volet-' + slug)) return;
       e.preventDefault();
+      lastBrk = a;
+      if (calm) { openVolet(slug, true); return; }
       a.classList.add('is-pressed');
-      var face = a.querySelector('.brk__face');
-      setTimeout(function () {
-        if (face && window.innerWidth > 860) face.style.viewTransitionName = 'breaker';
-        window.location.href = a.href;
-      }, 430);
+      setTimeout(function () { openVolet(slug, true); }, 380);
     });
   });
-  // Retour arrière (cache de page) : retirer l'état « appuyé ».
-  window.addEventListener('pageshow', function () {
-    document.querySelectorAll('.brk.is-pressed').forEach(function (a) {
-      a.classList.remove('is-pressed');
-      var f = a.querySelector('.brk__face'); if (f) f.style.viewTransitionName = '';
-    });
-  });
+  // Lien direct vers un service ouvert (ex. index.html#domotique)
+  if (location.hash && document.getElementById('volet-' + location.hash.slice(1))) {
+    history.replaceState({ volet: location.hash.slice(1) }, '', location.hash);
+    openVolet(location.hash.slice(1), false);
+  }
 
   // Apparition des sections au défilement : les blocs glissent légèrement, l'un après l'autre.
   // Les classes sont posées ici : sans JavaScript, tout reste visible.

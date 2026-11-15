@@ -320,7 +320,37 @@ def panel(exclude=None, animate=False):
   <span class="brk__face" aria-hidden="true"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span>
   <span class="brk__desc">{s_["short"]}</span>
 </a></li>""")
-    return f'<div class="panel"><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
+    tpls = "".join(volet_template(x) for x in SERVICES if x["slug"] != exclude)
+    return f'<div class="panel"><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>" + tpls
+
+
+def volet_template(s_):
+    """Contenu d'un service, affiché dans le volet qui s'ouvre au clic sur son disjoncteur."""
+    n, d, t = CONTACTS[0]
+    intro = "".join(f"<p>{p}</p>" for p in s_["intro"])
+    items = "".join(f"<li>{i}</li>" for i in s_["items"])
+    extra = "".join(f"<p>{p}</p>" for p in s_["extra"])
+    img = (f'<figure class="vc__img"><img src="{s_["img"]}" alt="{s_["title"]}" width="1500" height="1000"></figure>'
+           if s_["img"] else "")
+    return f"""<template id="volet-{s_["slug"]}" data-title="{s_["title"]}"><div class="vc">
+  <div class="vc__head">
+    <div>
+      <h2 class="vc__title">{s_["h1"]}</h2>
+      <p class="lead">{s_["lead"]}</p>
+      <div class="hero__ctas">
+        <a class="btn btn--yellow" href="contact.html">Demander un devis</a>
+        <a class="btn btn--line" href="tel:{t}">{icon("phone")} {d}</a>
+      </div>
+    </div>
+    {img}
+  </div>
+  <div class="vc__cols">
+    <div><h3>{s_["intro_h"]}</h3>{intro}</div>
+    <div><h3>{s_["list_h"]}</h3><ul class="checks">{items}</ul></div>
+  </div>
+  <div class="aside-note"><h3>{s_["extra_h"]}</h3>{extra}</div>
+  <p class="vc__more"><a href="{s_["slug"]}.html">Voir la page complète : {s_["title"]}</a></p>
+</div></template>"""
 
 
 def breaker(s_):
