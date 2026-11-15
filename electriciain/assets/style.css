@@ -24,7 +24,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 96px; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 96px; scrollbar-gutter: stable; }
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -533,10 +533,10 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .volet-lock, .volet-lock body { overflow: hidden; }
 .volet { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: clamp(16px, 4vh, 40px) 20px; }
 .volet[hidden] { display: none; }
-.volet__backdrop { position: absolute; inset: 0; background: rgba(20, 22, 24, .42); opacity: 0; transition: opacity .32s ease; }
+.volet__backdrop { position: absolute; inset: 0; background: rgba(20, 22, 24, .42); opacity: 0; transition: opacity .4s cubic-bezier(.32, .72, 0, 1); will-change: opacity; }
 .volet.is-open .volet__backdrop { opacity: 1; }
 /* calque qui fait la transformation du disjoncteur vers la fiche (découpe animée par main.js) */
-.volet__morph { position: fixed; inset: 0; z-index: 1; background: var(--white); pointer-events: none; will-change: clip-path; }
+.volet__morph { position: fixed; z-index: 1; background: var(--white); pointer-events: none; transform-origin: 0 0; will-change: transform; box-shadow: 0 24px 60px -18px rgba(0,0,0,.3); }
 .volet__sheet {
   position: relative; z-index: 2; width: min(980px, 100%); max-height: 100%; display: flex; flex-direction: column;
   background: var(--white); border-radius: 14px; overflow: hidden;

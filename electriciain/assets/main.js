@@ -48,7 +48,7 @@
   // s'ouvre sur place et montre le service. Sans JavaScript (ou Ctrl-clic), le lien
   // mène simplement à la page du service.
   var volet = null, lastBrk = null, openSlug = null, busy = false;
-  var EASE = 'cubic-bezier(.2, .8, .2, 1)';
+  var EASE = 'cubic-bezier(.32, .72, 0, 1)';   // départ vif, arrivée très douce
   function buildVolet() {
     volet = document.createElement('div');
     volet.className = 'volet';
@@ -72,10 +72,15 @@
       }
     });
   }
-  // découpe « inset » qui correspond à un rectangle de l'écran
-  function inset(r, rad) {
-    var w = window.innerWidth, h = window.innerHeight;
-    return 'inset(' + r.top + 'px ' + (w - r.right) + 'px ' + (h - r.bottom) + 'px ' + r.left + 'px round ' + rad + 'px)';
+  // Le calque est posé à la place exacte de la fiche ; seul son « transform » est animé
+  // (déplacement + échelle), ce que la carte graphique gère seule : animation fluide.
+  function placeMorph(morph, to, radius) {
+    morph.style.left = to.left + 'px'; morph.style.top = to.top + 'px';
+    morph.style.width = to.width + 'px'; morph.style.height = to.height + 'px';
+    morph.style.borderRadius = radius + 'px';
+  }
+  function fit(r, to) {
+    return 'translate(' + (r.left - to.left) + 'px, ' + (r.top - to.top) + 'px) scale(' + (r.width / to.width) + ', ' + (r.height / to.height) + ')';
   }
   function fromRect() {
     var face = lastBrk && (lastBrk.querySelector('.brk__face') || lastBrk);
@@ -109,10 +114,11 @@
       volet.querySelector('.volet__close').focus({ preventScroll: true });
     }
     if (calm || !from || !morph.animate) { morph.style.opacity = '0'; ready(); return true; }
+    placeMorph(morph, to, radius);
     morph.style.opacity = '1';
-    var anim = morph.animate([{ clipPath: inset(from, 5), backgroundColor: '#f6f6f3' }, { clipPath: inset(to, radius), backgroundColor: '#ffffff' }],
-      { duration: 480, easing: EASE, fill: 'forwards' });
-    setTimeout(ready, 200);                         // la fiche apparaît en fondu pendant la fin du mouvement
+    var anim = morph.animate([{ transform: fit(from, to) }, { transform: 'none' }],
+      { duration: 520, easing: EASE, fill: 'forwards' });
+    setTimeout(ready, 210);                         // la fiche apparaît en fondu pendant la fin du mouvement
     anim.onfinish = function () { morph.style.opacity = '0'; };
     return true;
   }
@@ -135,12 +141,12 @@
     volet.classList.add('is-leaving');
     volet.classList.remove('is-open');
     if (calm || !to || !morph.animate) { setTimeout(done, calm ? 0 : 320); return; }
-    setTimeout(function () {
-      volet.classList.remove('is-ready');           // la fiche disparaît, le calque prend le relais
-      morph.style.opacity = '1';
-      morph.animate([{ clipPath: inset(from, radius), backgroundColor: '#ffffff' }, { clipPath: inset(to, 5), backgroundColor: '#f6f6f3', opacity: 1, offset: .82 }, { clipPath: inset(to, 5), backgroundColor: '#f6f6f3', opacity: 0 }],
-        { duration: 460, easing: EASE, fill: 'forwards' }).onfinish = done;
-    }, 130);
+    morph.getAnimations().forEach(function (a) { a.cancel(); });
+    placeMorph(morph, from, radius);
+    morph.style.opacity = '1';                      // le calque, sous la fiche, prend le relais
+    volet.classList.remove('is-ready');
+    morph.animate([{ transform: 'none', opacity: 1 }, { transform: fit(to, from), opacity: 1, offset: .85 }, { transform: fit(to, from), opacity: 0 }],
+      { duration: 420, delay: 70, easing: EASE, fill: 'forwards' }).onfinish = done;
   }
   window.addEventListener('popstate', function (e) {
     var h = location.hash.slice(1);
@@ -158,8 +164,17 @@
       lastBrk = a;
       if (calm) { openVolet(slug, true); return; }
       a.classList.add('is-pressed');
-      setTimeout(function () { openVolet(slug, true); }, 220);
+      setTimeout(function () { openVolet(slug, true); }, 90);
     });
+    // précharger la photo de la fiche dès que la souris ou le doigt approche
+    function preload() {
+      var tpl = document.getElementById('volet-' + a.getAttribute('href').replace('.html', ''));
+      var img = tpl && tpl.content.querySelector('img');
+      if (img && !img.dataset.pre) { img.dataset.pre = 1; var i = new Image(); i.src = img.getAttribute('src'); if (i.decode) i.decode().catch(function () {}); }
+    }
+    a.addEventListener('pointerenter', preload);
+    a.addEventListener('touchstart', preload, { passive: true });
+    a.addEventListener('focus', preload);
   });
   // Lien direct vers un service ouvert (ex. index.html#domotique)
   if (location.hash && document.getElementById('volet-' + location.hash.slice(1))) {
