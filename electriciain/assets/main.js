@@ -213,6 +213,42 @@
     seen.forEach(function (el) { rio.observe(el); });
   }
 
+  // Scènes animées des pages services : tracé à l'arrivée, puis boucle (.is-live),
+  // en pause hors écran ; inclinaison 3D qui suit la souris.
+  document.querySelectorAll('.scene').forEach(function (sc) {
+    var start = function () {
+      if (sc.classList.contains('is-in')) return;
+      sc.classList.add('is-in', 'is-vis');
+      setTimeout(function () { sc.classList.add('is-live'); }, calm ? 0 : 1800);
+    };
+    if (!('IntersectionObserver' in window)) { start(); return; }
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) start();
+        sc.classList.toggle('is-vis', e.isIntersecting);
+      });
+    }, { threshold: 0.3 }).observe(sc);
+    if (calm || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    var raf = 0;
+    sc.addEventListener('pointermove', function (e) {
+      if (raf) return;
+      raf = requestAnimationFrame(function () {
+        raf = 0;
+        var r = sc.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        sc.classList.add('is-tilt');
+        sc.style.setProperty('--ry', ((x - 0.5) * 12).toFixed(2) + 'deg');
+        sc.style.setProperty('--rx', ((0.5 - y) * 10).toFixed(2) + 'deg');
+        sc.style.setProperty('--gx', (x * 100).toFixed(1) + '%');
+        sc.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
+      });
+    });
+    sc.addEventListener('pointerleave', function () {
+      sc.classList.remove('is-tilt');
+      sc.style.setProperty('--rx', '0deg'); sc.style.setProperty('--ry', '0deg');
+    });
+  });
+
   // Formulaire de contact : tant qu'aucun service d'envoi n'est branché
   // (attribut action vide), on ouvre un e-mail pré-rempli à l'adresse data-email.
   var form = document.querySelector('form[data-email]');

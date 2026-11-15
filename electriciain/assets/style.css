@@ -291,55 +291,269 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .solo { --travel: 40px; }
 .solo .brk__win { width: 22px; height: 17px; }
 
-/* ---------- Scènes animées par service (en-tête des pages services) ---------- */
+/* ---------- Scènes animées par service (en-tête des pages services) ----------
+   1. la scène entre (fondu + léger zoom), 2. les contours se tracent au crayon,
+   3. les accents apparaissent, 4. l'histoire de la scène tourne en boucle (.is-live).
+   Les boucles sont mises en pause hors écran, et l'ensemble s'incline au survol de la souris. */
 .scene {
-  flex: none; width: min(320px, 100%); padding: 14px; border-radius: 14px; background: var(--enclosure);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.07), inset 0 2px 0 rgba(255,255,255,.55), 0 20px 40px -26px rgba(0,0,0,.45);
+  --sp: cubic-bezier(.34, 1.56, .64, 1);   /* ressort */
+  --eo: cubic-bezier(.16, 1, .3, 1);       /* sortie expo */
+  --eio: cubic-bezier(.65, 0, .35, 1);     /* entrée-sortie */
+  --ei: cubic-bezier(.55, 0, 1, .45);      /* entrée */
+  position: relative; flex: none; width: min(340px, 100%); padding: 14px; border-radius: 14px; background: var(--enclosure);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.07), inset 0 2px 0 rgba(255,255,255,.55), 0 24px 44px -28px rgba(0,0,0,.5);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .9s var(--eo);
 }
+.scene.is-tilt { transition-duration: .35s; }
+.scene__glare {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .5s;
+  background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.5), transparent 62%);
+  mix-blend-mode: soft-light;
+}
+.scene.is-tilt .scene__glare { opacity: 1; }
 .scene__svg { display: block; width: 100%; height: auto; background: var(--face); border-radius: 8px; box-shadow: inset 0 0 0 1px var(--edge); }
-.scene__svg * { transform-box: fill-box; }
-/* courant qui circule dans un fil */
-.sc-current { stroke-dasharray: 10 26; animation: sc-flow 1.1s linear infinite; }
-.sc-current--short { stroke-dasharray: 8 18; }
-@keyframes sc-flow { to { stroke-dashoffset: -72; } }
-/* halo d'ampoule */
-.sc-glow { opacity: .25; transform-origin: center; animation: sc-glow 2.4s ease-in-out infinite; }
-@keyframes sc-glow { 0%, 100% { opacity: .2; scale: .85; } 50% { opacity: .75; scale: 1.05; } }
-.sc-filament { animation: sc-fil 2.4s ease-in-out infinite; }
-@keyframes sc-fil { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
-/* ondes de détection (alarme) */
-.sc-ripple { transform-origin: center; animation: sc-ripple 2.4s ease-out infinite; }
-@keyframes sc-ripple { 0% { scale: 1; opacity: .9; } 100% { scale: 4.2; opacity: 0; } }
-.sc-led { animation: sc-blink 1.2s steps(1) infinite; }
-@keyframes sc-blink { 50% { opacity: .15; } }
-/* ondes wifi (domotique), ampoule synchronisée */
-.sc-wave { opacity: .15; animation: sc-wave 2.4s ease-in-out infinite; }
-@keyframes sc-wave { 0%, 100% { opacity: .15; } 30%, 60% { opacity: 1; } }
-.sc-glow--sync { animation-delay: .5s; }
-/* chaleur qui monte */
-.sc-heat { transform-origin: center bottom; animation: sc-heat 2.7s ease-in-out infinite; }
-@keyframes sc-heat { 0% { opacity: 0; translate: 0 14px; } 35% { opacity: 1; } 100% { opacity: 0; translate: 0 -16px; } }
-/* hélice de VMC et flux d'air */
-.sc-spin { transform-origin: center; animation: sc-spin 2.2s linear infinite; }
+.scene__svg * { transform-box: fill-box; transform-origin: center; }
+.scene:not(.is-vis) * { animation-play-state: paused !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .js .scene { opacity: 0; translate: 0 18px; scale: .96; transition: opacity .8s var(--eo), translate 1.1s var(--eo), scale 1.1s var(--eo), transform .9s var(--eo); }
+  .js .scene.is-in { opacity: 1; translate: none; scale: none; }
+  .js .dr { stroke-dasharray: 1 2; stroke-dashoffset: 1; fill-opacity: 0; }
+  .is-in .dr { animation: sc-draw 1.1s var(--eio) calc(.2s + var(--i, 0) * 90ms) both; }
+  .js .ac { opacity: 0; }
+  .is-in .ac { animation: sc-fade .7s var(--eo) 1s both; }
+  .is-live .dr { stroke-dasharray: none; stroke-dashoffset: 0; fill-opacity: 1; }
+  .is-live .ac { opacity: 1; }
+}
+@keyframes sc-draw { 0% { stroke-dashoffset: 1; fill-opacity: 0; opacity: 0; } 5% { opacity: 1; } 70% { stroke-dashoffset: 0; fill-opacity: 0; } 100% { stroke-dashoffset: 0; fill-opacity: 1; opacity: 1; } }
+@keyframes sc-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sc-spin { to { rotate: 1turn; } }
-.sc-air { animation: sc-air 1.6s ease-in infinite; }
-@keyframes sc-air { 0% { opacity: 0; translate: -10px 0; } 30% { opacity: 1; } 100% { opacity: 0; translate: 16px 0; } }
-/* portail qui coulisse, feu orange qui clignote pendant le mouvement */
-.sc-gate { animation: sc-gate 6s cubic-bezier(.45, 0, .25, 1) infinite; }
-@keyframes sc-gate { 0%, 12% { translate: 0 0; } 45%, 62% { translate: 120px 0; } 95%, 100% { translate: 0 0; } }
-.sc-flash { animation: sc-flash 6s linear infinite; }
-@keyframes sc-flash { 0%, 12%, 45%, 62%, 95%, 100% { opacity: .15; } 16%, 24%, 32%, 40%, 66%, 74%, 82%, 90% { opacity: 1; } 20%, 28%, 36%, 70%, 78%, 86% { opacity: .2; } }
-/* fenêtres qui s'allument une à une (tertiaire) */
-.sc-windows rect { animation: sc-win 4.8s steps(1) infinite; animation-delay: calc(var(--w) * .3s); }
-@keyframes sc-win { 0%, 55% { fill: #f7c600; } 56%, 100% { fill: #e4e6e2; } }
-/* batterie qui se remplit (IRVE) */
-.sc-fill { transform-origin: left center; animation: sc-fill 3.6s ease-in-out infinite; }
-@keyframes sc-fill { 0% { scale: .04 1; } 80%, 100% { scale: 1 1; } }
-.sc-d2 { animation-delay: .4s; }
-.sc-d3 { animation-delay: .8s; }
-.sc-ripple.sc-d2 { animation-delay: 1.2s; }
-.sc-heat.sc-d2 { animation-delay: .9s; }
-.sc-heat.sc-d3 { animation-delay: 1.8s; }
+
+/* 1 · Électricité générale : interrupteur -> étincelle -> courant -> l'ampoule hésite puis s'allume */
+.scene--electricite-generale { --T: 4.6s; }
+.e1-spark { opacity: 0; transform-box: view-box; transform-origin: 86px 90px; }
+.e1-comet, .e1-live, .e1-halo { opacity: 0; }
+.e1-rays path { opacity: 0; transform-box: view-box; transform-origin: 190px 66px; }
+.is-live .e1-lever { animation: e1-lever var(--T) infinite; }
+.is-live .e1-led { animation: e1-led var(--T) infinite; }
+.is-live .e1-spark { animation: e1-spark var(--T) infinite; }
+.is-live .e1-comet { animation: e1-comet var(--T) infinite; }
+.is-live .e1-live { animation: e1-flow .6s linear infinite, e1-live var(--T) infinite; }
+.is-live .e1-fil { animation: e1-fil var(--T) infinite; }
+.is-live .e1-glass { animation: e1-glass var(--T) infinite; }
+.is-live .e1-halo { animation: e1-halo var(--T) infinite; }
+.is-live .e1-rays path { animation: e1-ray var(--T) calc(var(--r) * 28ms) infinite; }
+@keyframes e1-lever {
+  0%, 8% { translate: 0 0; animation-timing-function: cubic-bezier(.4, 0, .6, 1); }
+  12% { translate: 0 3px; animation-timing-function: cubic-bezier(.3, 1.45, .5, 1); }
+  19%, 84% { translate: 0 -30px; animation-timing-function: cubic-bezier(.55, 0, .8, .3); }
+  89% { translate: 0 2px; animation-timing-function: ease-out; }
+  93%, 100% { translate: 0 0; }
+}
+@keyframes e1-led { 0%, 17% { fill: #c9cdc7; } 19%, 86% { fill: #3bb36a; } 88%, 100% { fill: #c9cdc7; } }
+@keyframes e1-spark { 0%, 17% { opacity: 0; scale: .3; } 19% { opacity: 1; scale: .8; animation-timing-function: var(--eo); } 28%, 100% { opacity: 0; scale: 1.6; } }
+@keyframes e1-comet { 0%, 19% { stroke-dashoffset: 14; opacity: 1; animation-timing-function: cubic-bezier(.45, 0, .75, .6); } 40% { stroke-dashoffset: -100; opacity: 1; } 41%, 100% { stroke-dashoffset: -100; opacity: 0; } }
+@keyframes e1-flow { to { stroke-dashoffset: -10; } }
+@keyframes e1-live { 0%, 40% { opacity: 0; } 46%, 84% { opacity: .85; } 88%, 100% { opacity: 0; } }
+@keyframes e1-fil { 0%, 40% { stroke: #c9cdc7; } 41% { stroke: #f7c600; } 43% { stroke: #c9cdc7; } 45% { stroke: #f7c600; } 46.5% { stroke: #c9cdc7; } 48%, 86% { stroke: #f7c600; } 89%, 100% { stroke: #c9cdc7; } }
+@keyframes e1-glass { 0%, 40% { fill: #fff; } 41% { fill: #fff3b8; } 43% { fill: #fff; } 45% { fill: #fff3b8; } 46.5% { fill: #fff; } 48%, 86% { fill: #fff3b8; } 89%, 100% { fill: #fff; } }
+@keyframes e1-halo {
+  0%, 47% { opacity: 0; scale: .5; animation-timing-function: var(--eo); }
+  55% { opacity: .7; scale: 1.12; animation-timing-function: var(--eio); }
+  62% { opacity: .5; scale: 1; } 73% { opacity: .62; scale: 1.05; } 84% { opacity: .5; scale: 1; }
+  90%, 100% { opacity: 0; scale: .8; }
+}
+@keyframes e1-ray { 0%, 48% { opacity: 0; scale: .4; animation-timing-function: var(--sp); } 57% { opacity: 1; scale: 1; } 82% { opacity: 1; scale: 1; animation-timing-function: var(--ei); } 88%, 100% { opacity: 0; scale: 1.25; } }
+
+/* 2 · Alarme : la porte s'ouvre -> détection, sirène, notification -> porte refermée, tout repasse au vert */
+.scene--alarme-interphonie { --T: 6s; }
+.al-door { transform-box: view-box; transform-origin: 40px 136px; }
+.al-beam { transform-box: view-box; transform-origin: 123px 82px; rotate: -14deg; }
+.al-ring, .al-notif, .al-ok { opacity: 0; }
+.is-live .al-door { animation: al-door var(--T) infinite; }
+.is-live .al-beam { animation: al-beam var(--T) infinite; }
+.is-live .al-led { animation: al-led var(--T) infinite; }
+.is-live .al-win { animation: al-win var(--T) infinite; }
+.is-live .al-ring { animation: al-ring var(--T) infinite; }
+.is-live .al-ring--2 { animation-delay: .4s; }
+.is-live .al-phone { animation: al-shake var(--T) infinite; }
+.is-live .al-notif { animation: al-notif var(--T) infinite; }
+.is-live .al-ok { animation: al-ok var(--T) infinite; }
+@keyframes al-door { 0%, 16% { scale: 1 1; animation-timing-function: var(--eo); } 26%, 62% { scale: .2 1; animation-timing-function: cubic-bezier(.6, 0, .9, .5); } 71% { scale: 1.03 1; animation-timing-function: ease-out; } 74%, 100% { scale: 1 1; } }
+@keyframes al-beam {
+  0% { rotate: -14deg; fill: #2a5cb3; fill-opacity: .14; animation-timing-function: var(--eio); }
+  10% { rotate: 14deg; animation-timing-function: var(--eio); }
+  18% { rotate: -4deg; fill: #2a5cb3; fill-opacity: .14; animation-timing-function: var(--sp); }
+  23%, 64% { rotate: 0deg; fill: #d8261c; fill-opacity: .24; animation-timing-function: var(--eio); }
+  72% { fill: #2a5cb3; fill-opacity: .14; }
+  82% { rotate: 14deg; animation-timing-function: var(--eio); }
+  100% { rotate: -14deg; fill: #2a5cb3; fill-opacity: .14; }
+}
+@keyframes al-led { 0%, 21% { fill: #3bb36a; } 23%, 31%, 39%, 47%, 55%, 63% { fill: #d8261c; } 27%, 35%, 43%, 51%, 59% { fill: #f2f3f0; } 66%, 100% { fill: #3bb36a; } }
+@keyframes al-win { 0%, 22% { fill: #e4e6e2; } 25%, 33%, 41%, 49%, 57% { fill: #ffd2cf; } 29%, 37%, 45%, 53%, 61%, 100% { fill: #e4e6e2; } }
+@keyframes al-ring {
+  0%, 23% { opacity: 0; scale: 1; }
+  24% { opacity: .9; scale: 1; animation-timing-function: var(--eo); } 36% { opacity: 0; scale: 4.5; }
+  36.1% { opacity: .9; scale: 1; animation-timing-function: var(--eo); } 48% { opacity: 0; scale: 4.5; }
+  48.1% { opacity: .9; scale: 1; animation-timing-function: var(--eo); } 60%, 100% { opacity: 0; scale: 4.5; }
+}
+@keyframes al-shake { 0%, 28%, 34%, 100% { translate: 0 0; rotate: 0deg; } 29% { translate: -2px 0; rotate: -2deg; } 30% { translate: 2px 0; rotate: 2deg; } 31% { translate: -2px 0; rotate: -1.5deg; } 32% { translate: 2px 0; rotate: 1deg; } 33% { translate: -1px 0; rotate: 0deg; } }
+@keyframes al-notif { 0%, 27% { opacity: 0; translate: 0 -10px; scale: .7; animation-timing-function: var(--sp); } 33% { opacity: 1; translate: 0 0; scale: 1; } 64% { opacity: 1; scale: 1; animation-timing-function: var(--ei); } 68%, 100% { opacity: 0; scale: .85; translate: 0 0; } }
+@keyframes al-ok { 0%, 72% { opacity: 0; scale: .4; animation-timing-function: var(--sp); } 79% { opacity: 1; scale: 1; } 93% { opacity: 1; scale: 1; animation-timing-function: ease-in; } 98%, 100% { opacity: 0; scale: .9; } }
+
+/* 3 · Domotique : appui sur le téléphone -> le signal vole jusqu'à la maison -> lumières ; 2e appui -> volet roulant */
+.scene--domotique { --T: 6.4s; }
+.dm-ring, .dm-dot { opacity: 0; }
+.dm-wave { opacity: .18; }
+.dm-shut { transform-box: view-box; transform-origin: 193px 118px; scale: 1 .02; }
+.is-live .dm-btn { animation: dm-btn var(--T) infinite; }
+.is-live .dm-ring { animation: dm-ring var(--T) infinite; }
+.is-live .dm-dot { animation: dm-dot var(--T) calc(var(--k) * .11s) infinite; }
+.is-live .dm-wave { animation: dm-wave var(--T) infinite; }
+.is-live .dm-wave--2 { animation-delay: .12s; }
+.is-live .dm-w1 { animation: dm-w1 var(--T) infinite; }
+.is-live .dm-w2 { animation: dm-w2 var(--T) infinite; }
+.is-live .dm-shut { animation: dm-shut var(--T) infinite; }
+@keyframes dm-btn { 0%, 5%, 45% { scale: 1; animation-timing-function: var(--ei); } 8%, 48% { scale: .82; animation-timing-function: var(--sp); } 14%, 40%, 54%, 100% { scale: 1; } }
+@keyframes dm-ring { 0%, 8% { opacity: 0; scale: 1; } 9% { opacity: .9; scale: 1; animation-timing-function: var(--eo); } 22% { opacity: 0; scale: 2.3; } 48% { opacity: 0; scale: 1; } 49% { opacity: .9; scale: 1; animation-timing-function: var(--eo); } 62%, 100% { opacity: 0; scale: 2.3; } }
+@keyframes dm-dot {
+  0%, 10% { opacity: 0; translate: 0 0; }
+  11% { opacity: 1; translate: 0 0; animation-timing-function: linear; }
+  15% { translate: 28px -22px; } 19% { translate: 58px -34px; } 23% { translate: 86px -34px; opacity: 1; }
+  25% { translate: 96px -30px; opacity: 0; }
+  50% { opacity: 0; translate: 0 0; }
+  51% { opacity: 1; translate: 0 0; animation-timing-function: linear; }
+  55% { translate: 28px -22px; } 59% { translate: 58px -34px; } 63% { translate: 86px -34px; opacity: 1; }
+  65%, 100% { translate: 96px -30px; opacity: 0; }
+}
+@keyframes dm-wave { 0%, 23%, 63% { opacity: .18; } 26%, 66% { opacity: 1; } 34%, 74%, 100% { opacity: .18; } }
+@keyframes dm-w1 { 0%, 26% { fill: #e4e6e2; } 30%, 88% { fill: #f7c600; } 93%, 100% { fill: #e4e6e2; } }
+@keyframes dm-w2 { 0%, 31% { fill: #e4e6e2; } 35%, 88% { fill: #f7c600; } 93%, 100% { fill: #e4e6e2; } }
+@keyframes dm-shut {
+  0%, 64% { scale: 1 .02; animation-timing-function: cubic-bezier(.5, 0, .3, 1); }
+  76% { scale: 1 1.02; animation-timing-function: ease-out; }
+  79% { scale: 1 .96; animation-timing-function: ease-in-out; }
+  81%, 90% { scale: 1 1; animation-timing-function: var(--eio); }
+  98%, 100% { scale: 1 .02; }
+}
+
+/* 4 · Chauffage : neige dehors, ailettes qui rougissent une à une, givre qui fond, 16 -> 21 °C */
+.scene--chauffage-electrique { --T: 6s; }
+.ch-t { font: 800 17px/1 "Barlow Condensed", system-ui, sans-serif; }
+.ch-t2, .ch-hg { opacity: 0; }
+.ch-frost { opacity: .55; }
+.ch-merc { transform-box: view-box; transform-origin: 214px 134px; scale: 1 .3; }
+.is-live .ch-t1 { animation: ch-t1 var(--T) infinite; }
+.is-live .ch-t2 { animation: ch-t2 var(--T) infinite; }
+.is-live .ch-fin { animation: ch-fin var(--T) calc(var(--i) * .12s) infinite; }
+.is-live .ch-hg { animation: ch-hg var(--T) infinite; }
+.is-live .ch-heat { animation: ch-heat 1.9s cubic-bezier(.4, 0, .6, 1) calc(var(--k) * -.63s) infinite; }
+.is-live .ch-merc { animation: ch-merc var(--T) infinite; }
+.is-live .ch-frost { animation: ch-frost var(--T) infinite; }
+.is-live .ch-snow { animation: ch-snow 3.4s linear calc(var(--k) * -.53s) infinite; }
+@keyframes ch-t1 { 0%, 34% { opacity: 1; translate: 0 0; animation-timing-function: var(--ei); } 40% { opacity: 0; translate: 0 -8px; } 90% { opacity: 0; translate: 0 8px; animation-timing-function: var(--eo); } 97%, 100% { opacity: 1; translate: 0 0; } }
+@keyframes ch-t2 { 0%, 36% { opacity: 0; translate: 0 8px; animation-timing-function: var(--eo); } 43% { opacity: 1; translate: 0 0; } 84% { opacity: 1; translate: 0 0; animation-timing-function: var(--ei); } 90%, 100% { opacity: 0; translate: 0 -8px; } }
+@keyframes ch-fin { 0%, 10% { fill: #f2f3f0; } 20% { fill: #ffd27a; } 30%, 80% { fill: #ffab3d; } 94%, 100% { fill: #f2f3f0; } }
+@keyframes ch-hg { 0%, 24% { opacity: 0; } 34%, 82% { opacity: 1; } 90%, 100% { opacity: 0; } }
+@keyframes ch-heat { 0% { opacity: 0; translate: 0 12px; scale: .9 1; } 30% { opacity: 1; } 60% { scale: 1.15 1; } 100% { opacity: 0; translate: 0 -16px; scale: .85 1; } }
+@keyframes ch-merc { 0%, 14% { scale: 1 .3; animation-timing-function: var(--eio); } 46% { scale: 1 .88; animation-timing-function: ease-out; } 50%, 84% { scale: 1 .84; animation-timing-function: var(--eio); } 98%, 100% { scale: 1 .3; } }
+@keyframes ch-frost { 0%, 18% { opacity: .55; } 50%, 86% { opacity: 0; } 100% { opacity: .55; } }
+@keyframes ch-snow { 0% { translate: 0 0; } 25% { translate: 3px 17px; } 50% { translate: -2px 34px; } 75% { translate: 3px 51px; } 100% { translate: 0 68px; } }
+
+/* 5 · VMC : l'hélice démarre en douceur (accélération continue), traînée de vitesse, humidité aspirée, air sain rejeté */
+.vm-fan, .vm-ghost { transform-box: view-box; transform-origin: 100px 90px; }
+.vm-ghost { opacity: 0; }
+.vm-flow { opacity: 0; }
+.is-live .vm-fan { animation: sc-spin 1.8s cubic-bezier(.5, 0, .75, .5), sc-spin .9s linear 1.8s infinite; }
+.is-live .vm-ghost { animation: sc-spin 1.8s cubic-bezier(.5, 0, .75, .5) forwards, sc-spin .9s linear 1.86s infinite, vm-ghost 1.8s ease-in both; }
+.is-live .vm-ring { animation: sc-spin 14s linear infinite reverse; }
+.is-live .vm-drop { animation: vm-drop 2.4s var(--ei) calc(var(--k) * -.8s) infinite; }
+.is-live .vm-flow { animation: vm-flow 1.9s cubic-bezier(.3, 0, .4, 1) calc(1.2s + var(--k) * .63s) infinite both; }
+@keyframes vm-ghost { from { opacity: 0; } to { opacity: .2; } }
+@keyframes vm-drop { 0% { opacity: 0; translate: -8px 0; scale: 1; } 20% { opacity: 1; } 100% { opacity: 0; translate: 40px 0; scale: .3; } }
+@keyframes vm-flow { 0% { stroke-dashoffset: 26; opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: -100; opacity: 0; } }
+
+/* 6 · Motorisation : télécommande -> feu orange -> le portail prend son élan, roule, se pose ; puis se referme et tape la butée */
+.scene--motorisation-portails-garages { --T: 7s; }
+.mo-lamp { fill: #f3d6b6; }
+.mo-halo, .mo-sig { opacity: 0; }
+.is-live .mo-gate { animation: mo-gate var(--T) infinite; }
+.is-live .mo-gate .whl { animation: mo-whl var(--T) infinite; }
+.is-live .mo-lamp { animation: mo-lamp var(--T) infinite; }
+.is-live .mo-halo { animation: mo-halo var(--T) infinite; }
+.is-live .mo-btn { animation: mo-btn var(--T) infinite; }
+.is-live .mo-sig { animation: mo-sig var(--T) calc(var(--k) * .09s) infinite; }
+@keyframes mo-gate {
+  0%, 12% { translate: 0 0; animation-timing-function: ease-out; }
+  15% { translate: -3px 0; animation-timing-function: cubic-bezier(.6, 0, .3, 1); }
+  44% { translate: 123px 0; animation-timing-function: ease-in-out; }
+  47% { translate: 119px 0; animation-timing-function: ease-in-out; }
+  49%, 58% { translate: 120px 0; animation-timing-function: ease-out; }
+  61% { translate: 123px 0; animation-timing-function: cubic-bezier(.6, 0, .3, 1); }
+  88% { translate: -2px 0; animation-timing-function: ease-out; }
+  90% { translate: 1px 0; }
+  92%, 100% { translate: 0 0; }
+}
+@keyframes mo-whl {
+  0%, 12% { rotate: 0turn; animation-timing-function: ease-out; }
+  15% { rotate: -.1turn; animation-timing-function: cubic-bezier(.6, 0, .3, 1); }
+  44% { rotate: 3.92turn; animation-timing-function: ease-in-out; }
+  47% { rotate: 3.79turn; animation-timing-function: ease-in-out; }
+  49%, 58% { rotate: 3.82turn; animation-timing-function: ease-out; }
+  61% { rotate: 3.92turn; animation-timing-function: cubic-bezier(.6, 0, .3, 1); }
+  88% { rotate: -.06turn; animation-timing-function: ease-out; }
+  90% { rotate: .03turn; }
+  92%, 100% { rotate: 0turn; }
+}
+@keyframes mo-lamp { 0%, 12%, 17%, 25%, 33%, 41%, 49%, 56%, 61%, 69%, 77%, 85%, 93%, 100% { fill: #f3d6b6; } 13%, 21%, 29%, 37%, 45%, 57%, 65%, 73%, 81%, 89% { fill: #ff8a00; } }
+@keyframes mo-halo { 0%, 12%, 17%, 25%, 33%, 41%, 49%, 56%, 61%, 69%, 77%, 85%, 93%, 100% { opacity: 0; scale: .6; } 13%, 21%, 29%, 37%, 45%, 57%, 65%, 73%, 81%, 89% { opacity: .4; scale: 1; } }
+@keyframes mo-btn { 0%, 3%, 53% { scale: 1; animation-timing-function: var(--ei); } 6%, 56% { scale: .7; animation-timing-function: var(--sp); } 11%, 50%, 61%, 100% { scale: 1; } }
+@keyframes mo-sig { 0%, 5%, 55% { opacity: 0; translate: 0 0; } 7%, 57% { opacity: 1; } 12%, 62% { opacity: 0; translate: -6px 3px; } 100% { opacity: 0; translate: 0 0; } }
+
+/* 7 · Tertiaire : le soleil se couche, le ciel vire, les bureaux s'allument étage par étage, lune et étoiles, puis l'aube */
+.scene--electricite-tertiaire-et-industrielle { --T: 9s; }
+.te-w { fill: #e4e6e2; }
+.te-moon { opacity: 0; translate: 0 150px; }
+.te-star { opacity: 0; }
+.is-live .te-sky { animation: te-sky var(--T) infinite; }
+.is-live .te-sun { animation: te-sun var(--T) infinite; }
+.is-live .te-moon { animation: te-moon var(--T) infinite; }
+.is-live .te-star { animation: te-star var(--T) calc(var(--k) * .13s) infinite; }
+.is-live .te-w { animation: te-w var(--T) var(--w) infinite; }
+.is-live .te-dark { animation-name: te-dark; }
+@keyframes te-sky { 0%, 20% { fill: #fcfcfa; } 30% { fill: #f7d9a8; } 40%, 76% { fill: #23345a; } 86% { fill: #f6cfa0; } 94%, 100% { fill: #fcfcfa; } }
+@keyframes te-sun { 0%, 18% { translate: 0 0; fill: #f7c600; animation-timing-function: cubic-bezier(.5, 0, .8, .6); } 36%, 80% { translate: 0 150px; fill: #ff8a00; animation-timing-function: var(--eo); } 96%, 100% { translate: 0 0; fill: #f7c600; } }
+@keyframes te-moon { 0%, 34% { opacity: 0; translate: 0 150px; animation-timing-function: var(--eo); } 52%, 76% { opacity: 1; translate: 0 0; animation-timing-function: var(--ei); } 90%, 100% { opacity: 0; translate: 0 150px; } }
+@keyframes te-star { 0%, 40% { opacity: 0; scale: .4; } 46% { opacity: 1; scale: 1; } 52% { opacity: .35; } 58% { opacity: 1; } 64% { opacity: .4; } 70%, 76% { opacity: 1; scale: 1; } 82%, 100% { opacity: 0; scale: .4; } }
+@keyframes te-w { 0%, 30% { fill: #e4e6e2; } 32%, 80% { fill: #f7c600; } 82%, 100% { fill: #e4e6e2; } }
+@keyframes te-dark { 0%, 30% { fill: #e4e6e2; } 34%, 80% { fill: #5d6a85; } 84%, 100% { fill: #e4e6e2; } }
+
+/* 8 · Bornes IRVE : câble branché, courant, batterie qui se remplit, validé ; la voiture recule, repart, revient se garer */
+.scene--borne-irve { --T: 8s; }
+.ir-plug, .ir-flow, .ir-bat, .ir-ok { opacity: 0; }
+.ir-seg { opacity: .15; }
+.is-live .ir-car { animation: ir-car var(--T) infinite; }
+.is-live .ir-body { animation: ir-body var(--T) infinite; }
+.is-live .ir-car .whl { animation: ir-whl var(--T) infinite; }
+.is-live .ir-cable { animation: ir-cable var(--T) infinite; }
+.is-live .ir-plug { animation: ir-plug var(--T) infinite; }
+.is-live .ir-flow { animation: e1-flow .5s linear infinite reverse, ir-flow var(--T) infinite; }
+.is-live .ir-bat { animation: ir-bat var(--T) infinite; }
+.is-live .ir-seg { animation: ir-seg var(--T) calc(var(--i) * .7s) infinite; }
+.is-live .ir-ok { animation: ir-ok var(--T) infinite; }
+.is-live .ir-bolt { animation: ir-bolt var(--T) infinite; }
+@keyframes ir-car { 0%, 74% { translate: 0 0; animation-timing-function: cubic-bezier(.7, 0, .84, 0); } 86%, 88% { translate: 170px 0; animation-timing-function: cubic-bezier(.16, 1, .3, 1); } 100% { translate: 0 0; } }
+@keyframes ir-whl { 0%, 74% { rotate: 0turn; animation-timing-function: cubic-bezier(.7, 0, .84, 0); } 86%, 88% { rotate: 2.46turn; animation-timing-function: cubic-bezier(.16, 1, .3, 1); } 100% { rotate: 0turn; } }
+@keyframes ir-body { 0%, 100% { rotate: .9deg; translate: 0 1.5px; } 4% { rotate: -.3deg; translate: 0 -.5px; } 8%, 74% { rotate: 0deg; translate: 0 0; } 78% { rotate: 1deg; } 84%, 90% { rotate: 0deg; } 96% { rotate: -1.4deg; translate: 0 0; } }
+@keyframes ir-cable { 0%, 4% { stroke-dashoffset: 1; animation-timing-function: var(--eo); } 12%, 66% { stroke-dashoffset: 0; animation-timing-function: var(--ei); } 72%, 100% { stroke-dashoffset: 1; } }
+@keyframes ir-plug { 0%, 11% { opacity: 0; scale: 0; animation-timing-function: var(--sp); } 14% { opacity: 1; scale: 1.25; } 16%, 66% { opacity: 1; scale: 1; } 68%, 100% { opacity: 0; scale: 0; } }
+@keyframes ir-flow { 0%, 14% { opacity: 0; } 17%, 60% { opacity: 1; } 64%, 100% { opacity: 0; } }
+@keyframes ir-bat { 0%, 12% { opacity: 0; translate: 0 6px; animation-timing-function: var(--eo); } 17%, 68% { opacity: 1; translate: 0 0; } 72%, 100% { opacity: 0; translate: 0 -4px; } }
+@keyframes ir-seg { 0%, 20% { opacity: .15; } 22%, 66% { opacity: 1; } 70%, 100% { opacity: .15; } }
+@keyframes ir-ok { 0%, 50% { opacity: 0; scale: .4; animation-timing-function: var(--sp); } 55% { opacity: 1; scale: 1.15; } 58%, 66% { opacity: 1; scale: 1; } 70%, 100% { opacity: 0; scale: .8; } }
+@keyframes ir-bolt { 0%, 16%, 60%, 100% { opacity: 1; } 22%, 34%, 46% { opacity: .35; } 28%, 40%, 52% { opacity: 1; } }
+
 @media (max-width: 860px) {
   .page-hero .container { flex-direction: column; align-items: stretch; }
   .scene { width: min(300px, 100%); margin: 4px 0 0; }

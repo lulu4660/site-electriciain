@@ -355,90 +355,218 @@ def volet_template(s_):
 
 
 # ------------------------------------------------------------------ scènes animées par service
-# Petites illustrations en traits (style des icônes), animées en CSS (classes .sc-*).
+# Illustrations en traits (style des icônes), animées en CSS.
+#  .dr  : contour tracé au crayon à l'arrivée (pathLength=1), --i = ordre du tracé
+#  .ac  : calque d'accents qui apparaît une fois le dessin tracé
+#  les boucles (préfixe par scène) ne démarrent qu'avec .is-live, posé par main.js
+import math as _m
+
 _K = 'stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'
+
+
+def _d(i):
+    return f'class="dr" pathLength="1" style="--i:{i}"'
+
+
+def _rays(cx, cy, r1, r2, angles):
+    out = []
+    for n, a in enumerate(angles):
+        t = _m.radians(a)
+        x1, y1 = cx + r1 * _m.cos(t), cy + r1 * _m.sin(t)
+        x2, y2 = cx + r2 * _m.cos(t), cy + r2 * _m.sin(t)
+        out.append(f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" style="--r:{n}"/>')
+    return "".join(out)
+
+
+_WIRE = "M82 90 H128 Q144 90 144 106 V132 Q144 148 160 148 H176 Q190 148 190 134 V112"
+_BULB = "M190 40 A26 26 0 0 1 205 87.2 V100 H175 V87.2 A26 26 0 0 1 190 40 Z"
+_BLADES = """<path d="M100 90 C92 68 96 48 108 44 C118 42 120 60 100 90 Z"/>
+    <path d="M100 90 C122 82 142 86 146 98 C148 108 130 110 100 90 Z"/>
+    <path d="M100 90 C108 112 104 132 92 136 C82 138 80 120 100 90 Z"/>
+    <path d="M100 90 C78 98 58 94 54 82 C52 72 70 70 100 90 Z"/>"""
+_DROP = 'd="M0 -8 C4 -2 6 1 6 3.5 A6 6 0 0 1 -6 3.5 C-6 1 -4 -2 0 -8 Z"'
+_CAR = "M104 138 V122 Q104 114 112 112 L134 108 L150 92 Q154 88 160 88 H196 Q202 88 206 94 L218 110 Q226 112 226 120 V138 Z"
+
+
+def _wheel(cx, cy, r):
+    return (f'<g class="whl"><circle cx="{cx}" cy="{cy}" r="{r}" fill="#fff" {_K}/>'
+            f'<path d="M{cx} {cy - r + 3} V{cy + r - 3} M{cx - r + 3} {cy} H{cx + r - 3}" stroke="#000" stroke-width="2" stroke-linecap="round"/></g>')
+
+
+def _windows():
+    import random
+    rnd = random.Random(7)
+    out = []
+    # bâtiment principal : 4 colonnes x 5 étages, s'allument étage par étage depuis le bas
+    for r in range(5):
+        for c in range(4):
+            off = " te-dark" if rnd.random() < .22 else ""
+            d = (4 - r) * .22 + rnd.random() * .25
+            out.append(f'<rect class="te-w{off}" x="{76 + c * 24}" y="{52 + r * 19}" width="15" height="11" rx="2" stroke="#000" stroke-width="2" style="--w:{d:.2f}s"/>')
+    for (x, y, rows) in ((22, 108, 3), (194, 90, 4)):
+        for r in range(rows):
+            for c in range(2):
+                d = (rows - r) * .2 + rnd.random() * .4 + .3
+                out.append(f'<rect class="te-w" x="{x + c * 14}" y="{y + r * 15}" width="9" height="9" rx="1.5" stroke="#000" stroke-width="2" style="--w:{d:.2f}s"/>')
+    return "".join(out)
+
+
 SCENES = {
+ # interrupteur basculé -> étincelle -> le courant file -> l'ampoule hésite puis s'allume
  "electricite-generale": f"""
-  <rect x="26" y="58" width="64" height="64" rx="12" fill="#fff" {_K}/>
-  <circle cx="58" cy="90" r="19" fill="#f2f3f0" {_K}/>
-  <circle cx="51" cy="90" r="3.2" fill="#000"/><circle cx="65" cy="90" r="3.2" fill="#000"/>
-  <path d="M90 90 H138 Q154 90 154 106 V128 Q154 142 170 142 H186 Q194 142 194 134 V112" fill="none" {_K}/>
-  <path class="sc-current" d="M90 90 H138 Q154 90 154 106 V128 Q154 142 170 142 H186 Q194 142 194 134 V112" fill="none" stroke="#f7c600" stroke-width="5" stroke-linecap="round"/>
-  <circle class="sc-glow" cx="194" cy="66" r="34" fill="#f7c600"/>
-  <path d="M194 40 a24 24 0 0 1 14 43 v12 h-28 v-12 a24 24 0 0 1 14 -43 z" fill="#fff" {_K}/>
-  <path class="sc-filament" d="M186 80 l4 -10 l4 8 l4 -8 l4 10" fill="none" stroke="#f7c600" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M182 104 h24" {_K}/>""",
+  <g class="ac"><circle class="e1-halo" cx="190" cy="66" r="38" fill="#f7c600"/>
+   <g class="e1-rays" stroke="#f7c600" stroke-width="4" stroke-linecap="round">{_rays(190, 66, 40, 50, (-165, -130, -90, -50, -15, 165))}</g></g>
+  <rect {_d(0)} x="22" y="46" width="60" height="88" rx="12" fill="#fff" {_K}/>
+  <rect {_d(1)} x="42" y="60" width="20" height="58" rx="6" fill="#e4e6e2" {_K}/>
+  <path {_d(2)} d="{_WIRE}" fill="none" {_K}/>
+  <path class="e1-live" d="{_WIRE}" pathLength="100" fill="none" stroke="#f7c600" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 8"/>
+  <path class="e1-comet" d="{_WIRE}" pathLength="100" fill="none" stroke="#f7c600" stroke-width="7" stroke-linecap="round" stroke-dasharray="14 100" stroke-dashoffset="14"/>
+  <path class="dr e1-glass" pathLength="1" style="--i:3" d="{_BULB}" fill="#fff" {_K}/>
+  <path {_d(4)} d="M180 106 h20 M183 112 h14" fill="none" {_K}/>
+  <g class="ac">
+   <path class="e1-fil" d="M182 82 l4 -10 l4 8 l4 -8 l4 10" fill="none" stroke="#c9cdc7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+   <g class="e1-lever"><rect x="44" y="94" width="16" height="20" rx="4" fill="#000"/><path d="M48 100 h8 M48 105 h8" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g>
+   <circle class="e1-led" cx="52" cy="127" r="3.5" fill="#c9cdc7"/>
+   <g class="e1-spark" stroke="#f7c600" stroke-width="3" stroke-linecap="round"><path d="M90 82 l5 -6"/><path d="M93 90 h8"/><path d="M90 98 l5 6"/></g>
+  </g>""",
+
+ # la porte s'ouvre -> le faisceau se verrouille dessus, sirène, notification sur le téléphone -> porte refermée, tout est vert
  "alarme-interphonie": f"""
-  <path d="M44 100 L120 42 L196 100 V160 H44 Z" fill="#fff" {_K}/>
-  <circle class="sc-ripple" cx="120" cy="104" r="12" fill="none" stroke="#2a5cb3" stroke-width="3"/>
-  <circle class="sc-ripple sc-d2" cx="120" cy="104" r="12" fill="none" stroke="#2a5cb3" stroke-width="3"/>
-  <rect x="102" y="92" width="36" height="26" rx="8" fill="#f2f3f0" {_K}/>
-  <circle class="sc-led" cx="129" cy="101" r="4" fill="#d8261c"/>
-  <path d="M110 108 h12" {_K}/>
-  <path d="M106 160 v-28 h28 v28" fill="none" {_K}/>""",
+  <path {_d(0)} d="M12 160 H228" fill="none" {_K}/>
+  <path {_d(1)} d="M24 98 L97 42 L170 98 V160 H24 Z" fill="#fff" {_K}/>
+  <rect {_d(2)} x="40" y="112" width="30" height="48" fill="#3a3f3a" {_K}/>
+  <rect class="dr al-win" pathLength="1" style="--i:3" x="104" y="108" width="40" height="28" rx="3" fill="#e4e6e2" {_K}/>
+  <g class="ac">
+   <g class="al-door"><rect x="40" y="112" width="30" height="48" fill="#f2f3f0" {_K} vector-effect="non-scaling-stroke"/><circle cx="63" cy="137" r="2.6" fill="#000"/></g>
+   <path class="al-beam" d="M123 82 L44 158 L98 160 Z" fill="#2a5cb3" fill-opacity=".14"/>
+   <circle class="al-ring" cx="123" cy="75" r="10" fill="none" stroke="#d8261c" stroke-width="2.5"/>
+   <circle class="al-ring al-ring--2" cx="123" cy="75" r="10" fill="none" stroke="#d8261c" stroke-width="2.5"/>
+  </g>
+  <rect {_d(4)} x="110" y="68" width="26" height="13" rx="6.5" fill="#f2f3f0" {_K}/>
+  <g class="al-phone">
+   <rect {_d(5)} x="184" y="76" width="42" height="72" rx="8" fill="#fff" {_K}/>
+   <g class="ac"><rect x="190" y="86" width="30" height="50" rx="3" fill="#e4e6e2"/><path d="M200 81 h10" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+    <g class="al-notif"><rect x="188" y="98" width="34" height="20" rx="5" fill="#d8261c"/><path d="M205 102 v7 M205 113.5 v.2" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g>
+    <g class="al-ok"><rect x="188" y="98" width="34" height="20" rx="5" fill="#3bb36a"/><path d="M199 108 l4 4 l8 -8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  </g>
+  <g class="ac"><circle class="al-led" cx="123" cy="74.5" r="3" fill="#3bb36a"/></g>""",
+
+ # on touche le téléphone -> le signal file jusqu'à la maison -> lumières, puis volet roulant
  "domotique": f"""
-  <path class="sc-wave" d="M98 46 q22 -14 44 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
-  <path class="sc-wave sc-d2" d="M86 34 q34 -22 68 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
-  <path class="sc-wave sc-d3" d="M74 22 q46 -30 92 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
-  <path d="M44 112 L120 60 L196 112 V166 H44 Z" fill="#fff" {_K}/>
-  <circle class="sc-glow sc-glow--sync" cx="120" cy="116" r="26" fill="#f7c600"/>
-  <path d="M120 98 a14 14 0 0 1 8 25 v7 h-16 v-7 a14 14 0 0 1 8 -25 z" fill="#fff" {_K}/>
-  <path d="M114 138 h12" {_K}/>""",
+  <path {_d(0)} d="M86 162 H232" fill="none" {_K}/>
+  <path {_d(1)} d="M100 108 L162 62 L224 108 V162 H100 Z" fill="#fff" {_K}/>
+  <rect class="dr dm-w1" pathLength="1" style="--i:2" x="112" y="118" width="38" height="28" rx="3" fill="#e4e6e2" {_K}/>
+  <rect class="dr dm-w2" pathLength="1" style="--i:3" x="174" y="118" width="38" height="28" rx="3" fill="#e4e6e2" {_K}/>
+  <rect {_d(4)} x="154" y="138" width="16" height="24" rx="2" fill="#f2f3f0" {_K}/>
+  <g class="ac">
+   <g class="dm-shut"><rect x="174" y="118" width="38" height="28" rx="3" fill="#b9beb8" stroke="#000" stroke-width="3"/><path d="M176 125 h34 M176 132 h34 M176 139 h34" stroke="#8f958e" stroke-width="2"/></g>
+   <rect x="172" y="112" width="42" height="7" rx="2" fill="#cfd3cd" {_K}/>
+   <path class="dm-wave" d="M152 50 q10 -7 20 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+   <path class="dm-wave dm-wave--2" d="M145 41 q17 -12 34 0" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
+   <circle class="dm-dot" cx="66" cy="78" r="3.5" fill="#2a5cb3" style="--k:0"/><circle class="dm-dot" cx="66" cy="78" r="3.5" fill="#2a5cb3" style="--k:1"/><circle class="dm-dot" cx="66" cy="78" r="3.5" fill="#2a5cb3" style="--k:2"/>
+  </g>
+  <rect {_d(5)} x="18" y="56" width="46" height="82" rx="9" fill="#fff" {_K}/>
+  <g class="ac"><rect x="24" y="66" width="34" height="58" rx="3" fill="#e4e6e2"/>
+   <circle class="dm-ring" cx="41" cy="96" r="11" fill="none" stroke="#2a5cb3" stroke-width="2.5"/>
+   <g class="dm-btn"><circle cx="41" cy="96" r="11" fill="#2a5cb3"/><path d="M41 89.5 v6 M36.6 92.3 a6.4 6.4 0 1 0 8.8 0" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></g></g>""",
+
+ # il neige dehors, le radiateur chauffe ailette par ailette, le givre fond, le thermomètre monte de 16 à 21 °C
  "chauffage-electrique": f"""
-  <path class="sc-heat" d="M84 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
-  <path class="sc-heat sc-d2" d="M120 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
-  <path class="sc-heat sc-d3" d="M156 92 q-9 -11 0 -22 q9 -11 0 -22" fill="none" stroke="#f0a800" stroke-width="4.5" stroke-linecap="round"/>
-  <rect x="36" y="100" width="168" height="54" rx="10" fill="#fff" {_K}/>
-  <path d="M58 112 v30 M78 112 v30 M98 112 v30 M118 112 v30 M138 112 v30 M158 112 v30" {_K}/>
-  <circle cx="184" cy="127" r="7" fill="#f2f3f0" {_K}/>
-  <path d="M52 154 v10 M188 154 v10" {_K}/>""",
+  <defs><clipPath id="ch-clip"><rect x="24" y="22" width="62" height="56" rx="4"/></clipPath></defs>
+  <rect {_d(0)} x="24" y="22" width="62" height="56" rx="4" fill="#9fb4d8" {_K}/>
+  <g clip-path="url(#ch-clip)" class="ac">
+   {"".join(f'<circle class="ch-snow" cx="{x}" cy="18" r="{r}" fill="#fff" style="--k:{k}"/>' for k, (x, r) in enumerate(((32, 2.2), (44, 1.6), (54, 2.4), (66, 1.8), (78, 2.2), (38, 1.4), (72, 1.5))))}
+   <rect class="ch-frost" x="24" y="22" width="62" height="56" fill="#fff"/>
+  </g>
+  <path {_d(1)} d="M55 22 V78 M24 50 H86" fill="none" {_K}/>
+  <g class="ac">{"".join(f'<g class="ch-hg"><path class="ch-heat" style="--k:{k}" d="M{x} 92 q-8 -10 0 -20 q8 -10 0 -20" fill="none" stroke="#f08a00" stroke-width="4.5" stroke-linecap="round"/></g>' for k, x in enumerate((98, 128, 158)))}</g>
+  <rect {_d(2)} x="36" y="100" width="156" height="54" rx="10" fill="#fff" {_K}/>
+  <g class="ac">{"".join(f'<rect class="ch-fin" x="{48 + i * 21}" y="108" width="13" height="38" rx="6.5" fill="#f2f3f0" stroke="#000" stroke-width="2.5" style="--i:{i}"/>' for i in range(6))}
+   <circle cx="180" cy="127" r="5" fill="#f2f3f0" {_K}/></g>
+  <path {_d(3)} d="M50 154 v10 M178 154 v10" fill="none" {_K}/>
+  <rect {_d(4)} x="206" y="44" width="16" height="88" rx="8" fill="#fff" {_K}/>
+  <g class="ac"><rect x="211" y="52" width="6" height="80" rx="3" fill="#f2f3f0"/>
+   <rect class="ch-merc" x="211" y="52" width="6" height="82" rx="3" fill="#d8261c"/>
+   <circle cx="214" cy="138" r="11" fill="#d8261c" {_K}/>
+   <text class="ch-t ch-t1" x="214" y="33" text-anchor="middle" fill="#2a5cb3">16°</text>
+   <text class="ch-t ch-t2" x="214" y="33" text-anchor="middle" fill="#d8261c">21°</text></g>""",
+
+ # l'hélice démarre en douceur puis tourne ; l'humidité est aspirée, l'air sain ressort
  "vmc": f"""
-  <circle cx="104" cy="92" r="62" fill="#fff" {_K}/>
-  <circle cx="104" cy="92" r="50" fill="none" stroke="#c9cdc7" stroke-width="2"/>
-  <g class="sc-spin">
-    <path d="M104 92 C96 70 100 50 112 46 C122 44 124 62 104 92 Z" fill="#2a5cb3"/>
-    <path d="M104 92 C126 84 146 88 150 100 C152 110 134 112 104 92 Z" fill="#2a5cb3"/>
-    <path d="M104 92 C112 114 108 134 96 138 C86 140 84 122 104 92 Z" fill="#2a5cb3"/>
-    <path d="M104 92 C82 100 62 96 58 84 C56 74 74 72 104 92 Z" fill="#2a5cb3"/>
+  <g class="ac">{"".join(f'<g transform="translate(22 {y})"><path class="vm-drop" style="--k:{k}" {_DROP} fill="#2a5cb3" fill-opacity=".55"/></g>' for k, y in enumerate((62, 92, 122)))}</g>
+  <circle {_d(0)} cx="100" cy="90" r="62" fill="#fff" {_K}/>
+  <g class="ac">
+   <circle class="vm-ring" cx="100" cy="90" r="52" fill="none" stroke="#c9cdc7" stroke-width="2" stroke-dasharray="4 7"/>
+   <g class="vm-ghost" fill="#2a5cb3">{_BLADES}</g>
+   <g class="vm-fan" fill="#2a5cb3">{_BLADES}</g>
   </g>
-  <circle cx="104" cy="92" r="8" fill="#fff" {_K}/>
-  <path class="sc-air" d="M178 70 h34" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
-  <path class="sc-air sc-d2" d="M184 92 h30" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>
-  <path class="sc-air sc-d3" d="M178 114 h34" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round"/>""",
+  <circle {_d(1)} cx="100" cy="90" r="9" fill="#fff" {_K}/>
+  <g class="ac">{"".join(f'<path d="{d}" fill="none" stroke="#c9cdc7" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 6"/>' for d in ("M166 70 C186 62 200 78 230 68", "M170 92 C190 84 204 102 232 92", "M166 114 C186 106 200 124 230 116"))}</g>
+  <g class="ac">{"".join(f'<path class="vm-flow" style="--k:{k}" d="{d}" pathLength="100" fill="none" stroke="#2a5cb3" stroke-width="4" stroke-linecap="round" stroke-dasharray="26 100" stroke-dashoffset="26"/>' for k, d in enumerate(("M166 70 C186 62 200 78 230 68", "M170 92 C190 84 204 102 232 92", "M166 114 C186 106 200 124 230 116")))}</g>""",
+
+ # clic sur la télécommande -> feu orange, le portail prend son élan, coulisse sur ses roues, se pose ; puis se referme et tape la butée
  "motorisation-portails-garages": f"""
-  <path d="M16 156 H224" {_K}/>
-  <rect x="30" y="66" width="14" height="90" rx="2" fill="#f2f3f0" {_K}/>
-  <circle class="sc-flash" cx="37" cy="56" r="8" fill="#ff8a00"/>
-  <path d="M30 60 h14" {_K}/>
-  <g class="sc-gate">
-    <rect x="46" y="84" width="142" height="64" rx="3" fill="#fff" {_K}/>
-    <path d="M66 84 v64 M86 84 v64 M106 84 v64 M126 84 v64 M146 84 v64 M166 84 v64 M46 116 h142" stroke="#000" stroke-width="2.4"/>
+  <path {_d(0)} d="M12 158 H228" fill="none" {_K}/>
+  <path d="M44 156 H206" stroke="#c9cdc7" stroke-width="3" stroke-linecap="round" class="ac"/>
+  <rect {_d(1)} x="30" y="66" width="14" height="92" rx="2" fill="#f2f3f0" {_K}/>
+  <g class="ac"><circle class="mo-halo" cx="37" cy="57" r="15" fill="#ff8a00"/>
+   <path class="mo-lamp" d="M29 63 a8 8 0 0 1 16 0 Z" fill="#ff8a00" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/></g>
+  <g class="mo-gate">
+   <rect {_d(2)} x="46" y="84" width="142" height="62" rx="3" fill="#fff" {_K}/>
+   <path {_d(3)} d="M66 84 v62 M86 84 v62 M106 84 v62 M126 84 v62 M146 84 v62 M166 84 v62 M46 115 h142" fill="none" stroke="#000" stroke-width="2.4"/>
+   <g class="ac">{_wheel(64, 150, 5)}{_wheel(170, 150, 5)}</g>
   </g>
-  <rect x="190" y="66" width="14" height="90" rx="2" fill="#f2f3f0" {_K}/>
-  <rect x="14" y="134" width="14" height="22" rx="3" fill="#2a5cb3" {_K}/>""",
+  <g class="mo-post"><rect {_d(4)} x="190" y="66" width="14" height="92" rx="2" fill="#f2f3f0" {_K}/></g>
+  <g class="mo-remote">
+   <rect {_d(5)} x="200" y="14" width="28" height="44" rx="9" fill="#fff" {_K}/>
+   <g class="ac"><circle class="mo-btn" cx="214" cy="28" r="5.5" fill="#2a5cb3"/><circle cx="214" cy="44" r="4" fill="#e4e6e2" stroke="#000" stroke-width="2"/></g>
+  </g>
+  <g class="ac" fill="none" stroke="#2a5cb3" stroke-width="3" stroke-linecap="round">
+   <path class="mo-sig" style="--k:0" d="M193 24 q-5 8 0 16"/><path class="mo-sig" style="--k:1" d="M185 18 q-9 14 0 28"/><path class="mo-sig" style="--k:2" d="M177 12 q-13 20 0 40"/></g>""",
+
+ # le jour tombe : soleil couchant, ciel qui vire, fenêtres qui s'allument étage par étage, lune et étoiles ; puis le jour se lève
  "electricite-tertiaire-et-industrielle": f"""
-  <rect x="52" y="34" width="136" height="128" rx="4" fill="#fff" {_K}/>
-  <g class="sc-windows">""" + "".join(
-     f'<rect x="{68 + c * 28}" y="{50 + r * 26}" width="18" height="16" rx="2" fill="#e4e6e2" stroke="#000" stroke-width="2" style="--w:{(r * 4 + c) * 7 % 16}"/>'
-     for r in range(4) for c in range(4)) + f"""</g>
-  <path d="M108 162 v-20 h24 v20" fill="#f2f3f0" {_K}/>""",
+  <rect class="te-sky" x="0" y="0" width="240" height="180" fill="#fcfcfa"/>
+  <g class="ac"><circle class="te-sun" cx="200" cy="38" r="14" fill="#f7c600"/>
+   <g class="te-moon"><circle cx="40" cy="36" r="13" fill="#fff4c2"/><circle cx="47" cy="31" r="11" fill="#23345a" class="te-bite te-sky"/></g>
+   {"".join(f'<circle class="te-star" cx="{x}" cy="{y}" r="1.8" fill="#fff" style="--k:{k}"/>' for k, (x, y) in enumerate(((78, 20), (112, 14), (150, 24), (176, 12), (214, 66), (20, 70), (132, 30))))}
+   <rect x="0" y="160" width="240" height="20" fill="#f2f3f0"/></g>
+  <rect {_d(0)} x="14" y="100" width="40" height="60" rx="2" fill="#fff" {_K}/>
+  <rect {_d(1)} x="186" y="80" width="42" height="80" rx="2" fill="#fff" {_K}/>
+  <rect {_d(2)} x="62" y="38" width="116" height="122" rx="3" fill="#fff" {_K}/>
+  <path {_d(3)} d="M6 160 H234" fill="none" {_K}/>
+  <path {_d(4)} d="M108 160 v-18 h24 v18" fill="#f2f3f0" {_K}/>
+  <g class="ac">{_windows()}</g>""",
+
+ # la voiture arrive et se pose sur ses amortisseurs, le câble se branche, la batterie se remplit, validé ; puis elle repart
  "borne-irve": f"""
-  <rect x="30" y="34" width="62" height="120" rx="12" fill="#fff" {_K}/>
-  <rect x="42" y="48" width="38" height="26" rx="4" fill="#2a5cb3"/>
-  <path d="M58 54 l-6 10 h8 l-4 8" fill="none" stroke="#f7c600" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M24 154 h74" {_K}/>
-  <path d="M92 116 C120 116 112 92 136 92" fill="none" {_K}/>
-  <path class="sc-current sc-current--short" d="M92 116 C120 116 112 92 136 92" fill="none" stroke="#f7c600" stroke-width="5" stroke-linecap="round"/>
-  <rect x="136" y="70" width="80" height="44" rx="8" fill="#fff" {_K}/>
-  <rect x="216" y="84" width="8" height="16" rx="2" fill="#000"/>
-  <rect class="sc-fill" x="143" y="77" width="66" height="30" rx="4" fill="#3bb36a"/>
-  <path d="M178 80 l-8 13 h10 l-6 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>""",
+  <path {_d(0)} d="M8 151 H232" fill="none" {_K}/>
+  <rect {_d(1)} x="16" y="40" width="46" height="111" rx="10" fill="#fff" {_K}/>
+  <g class="ac"><rect x="24" y="52" width="30" height="24" rx="4" fill="#2a5cb3"/>
+   <path class="ir-bolt" d="M41 56 l-7 9 h8 l-6 8" fill="none" stroke="#f7c600" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+   <rect x="30" y="90" width="18" height="6" rx="3" fill="#e4e6e2"/></g>
+  <g class="ir-car">
+   <g class="ir-body">
+    <path {_d(2)} d="{_CAR}" fill="#fff" {_K}/>
+    <path {_d(3)} d="M157 94 H176 V106 H146 Z M182 94 H198 L207 106 H182 Z" fill="#e4e6e2" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+    <g class="ac"><rect x="105" y="117" width="7" height="10" rx="2" fill="#2a5cb3"/><path d="M214 118 h8" stroke="#f7c600" stroke-width="4" stroke-linecap="round"/></g>
+   </g>
+   <g class="ac">{_wheel(128, 140, 11)}{_wheel(202, 140, 11)}</g>
+  </g>
+  <path class="ir-cable" d="M62 124 C78 124 82 148 94 144 C104 140 102 124 108 122" pathLength="1" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1"/>
+  <path class="ir-flow" d="M62 124 C78 124 82 148 94 144 C104 140 102 124 108 122" pathLength="100" fill="none" stroke="#f7c600" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="4 10"/>
+  <circle class="ir-plug" cx="108" cy="122" r="4.5" fill="#000"/>
+  <g class="ir-bat">
+   <rect x="146" y="40" width="56" height="26" rx="6" fill="#fff" {_K}/><rect x="202" y="47" width="5" height="12" rx="1.5" fill="#000"/>
+   {"".join(f'<rect class="ir-seg" x="{150 + i * 13}" y="44" width="10" height="18" rx="2" fill="#3bb36a" style="--i:{i}"/>' for i in range(4))}
+  </g>
+  <g class="ir-ok"><circle cx="216" cy="34" r="10" fill="#3bb36a"/><path d="M211 34 l3.5 3.5 l6.5 -7" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></g>""",
 }
 
 
 def scene(slug):
     """Scène animée du service, dans un coffret gris (en-tête des pages services)."""
-    return f"""<div class="scene" aria-hidden="true"><svg viewBox="0 0 240 180" class="scene__svg scene--{slug}">{SCENES[slug]}</svg></div>"""
+    return f"""<div class="scene" aria-hidden="true"><svg viewBox="0 0 240 180" class="scene__svg scene--{slug}">{SCENES[slug]}</svg><span class="scene__glare"></span></div>"""
 
 
 def breaker(s_):
