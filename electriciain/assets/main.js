@@ -1,4 +1,4 @@
-// Menu mobile, sous-menu services, mise sous tension du tableau, formulaire.
+// Menu mobile, sous-menu services, formulaire.
 (function () {
   var burger = document.querySelector('.burger');
   var nav = document.querySelector('.nav');
@@ -21,16 +21,6 @@
     document.querySelectorAll('.nav__drop.open').forEach(function (d) {
       if (!d.contains(e.target) && window.innerWidth > 1020) d.classList.remove('open');
     });
-  });
-
-  // Mise sous tension du tableau : les manettes basculent une à une, une seule fois.
-  document.querySelectorAll('[data-power]').forEach(function (panel) {
-    function on() { setTimeout(function () { panel.classList.add('is-on'); }, 250); }
-    if (!('IntersectionObserver' in window)) return panel.classList.add('is-on');
-    var io = new IntersectionObserver(function (entries) {
-      if (entries[0].isIntersecting) { on(); io.disconnect(); }
-    }, { threshold: 0.35 });
-    io.observe(panel);
   });
 
   // Formulaire de contact : tant qu'aucun service d'envoi n'est branché

@@ -37,7 +37,7 @@ export default {
     if (!FILES[p] && FILES[p + ".html"]) p += ".html";
     const found = !!FILES[p];
     if (!found) p = "/404.html";
-    const cache = p.startsWith("/img/") ? "public, max-age=2592000" : p.startsWith("/assets/") ? "public, max-age=86400" : "public, max-age=300";
+    const cache = p.endsWith(".html") ? "no-cache" : p.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "public, max-age=2592000";
     return new Response(req.method === "HEAD" ? null : body(p), { status: found ? 200 : 404, headers: { "Content-Type": FILES[p][0], "Cache-Control": cache, ...SEC } });
   }
 };

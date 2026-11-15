@@ -8,6 +8,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent / "electriciain"
 
+import hashlib
+# Version des fichiers CSS/JS dans leur adresse : un navigateur ne garde jamais un ancien style.
+VER = hashlib.sha1(b"".join((ROOT / "assets" / f).read_bytes() for f in ("style.css", "main.js"))).hexdigest()[:8]
+
 # ------------------------------------------------------------------ infos
 NOM = "Les Électrici'Ain"
 ADRESSE = "49 Rue des Peupliers"
@@ -217,7 +221,7 @@ def head(title, desc, canonical):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add('js')</script>
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v={VER}">
 {SCHEMA}
 </head>
 <body>
@@ -301,7 +305,7 @@ def footer():
 <nav class="callbar" aria-label="Appeler">
   {"".join(f'<a href="tel:{t}">{icon("phone")}<span>Appeler<b>{n.split()[-1]}</b></span></a>' for n, d, t in CONTACTS)}
 </nav>
-<script src="assets/main.js" defer></script>
+<script src="assets/main.js?v={VER}" defer></script>
 </body>
 </html>
 """
@@ -311,13 +315,12 @@ def panel(exclude=None, animate=False):
     """Les services présentés comme les disjoncteurs d'un tableau électrique."""
     mods = []
     for s_ in [x for x in SERVICES if x["slug"] != exclude]:
-        mods.append(f"""<li style="--i:{len(mods)}"><a class="brk" href="{s_["slug"]}.html">
+        mods.append(f"""<li><a class="brk" href="{s_["slug"]}.html">
   <span class="brk__label">{s_["title"]}</span>
   <span class="brk__face" aria-hidden="true"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span>
   <span class="brk__desc">{s_["short"]}</span>
 </a></li>""")
-    attr = " data-power" if animate else ""
-    return f'<div class="panel"{attr}><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
+    return f'<div class="panel"><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
 
 
 def breaker(s_):
