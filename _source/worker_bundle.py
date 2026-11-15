@@ -17,7 +17,7 @@ TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
 
 files = {}
 for f in sorted(SITE.rglob("*")):
-    if f.is_file() and not f.name.startswith(("_", ".")):
+    if f.is_file() and not f.name.startswith(("_", ".")) and "v2" not in f.relative_to(SITE).parts:   # la version 2 (essai) n'est pas publiée
         rel = "/" + f.relative_to(SITE).as_posix()
         t = TYPES.get(f.suffix.lower()) or mimetypes.guess_type(f.name)[0] or "application/octet-stream"
         files[rel] = [t, base64.b64encode(f.read_bytes()).decode()]
