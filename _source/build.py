@@ -315,17 +315,18 @@ def panel(exclude=None, animate=False):
     """Les services présentés comme les disjoncteurs d'un tableau électrique."""
     mods = []
     for s_ in [x for x in SERVICES if x["slug"] != exclude]:
-        mods.append(f"""<li><a class="brk" href="{s_["slug"]}.html">
+        mods.append(f"""<li style="--i:{len(mods)}"><a class="brk" href="{s_["slug"]}.html">
   <span class="brk__label">{s_["title"]}</span>
   <span class="brk__face" aria-hidden="true"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span>
   <span class="brk__desc">{s_["short"]}</span>
 </a></li>""")
-    return f'<div class="panel"><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
+    attr = " data-power" if animate else ""
+    return f'<div class="panel"{attr}><ul class="panel__rail">' + "\n".join(mods) + "</ul></div>"
 
 
 def breaker(s_):
     """Un disjoncteur seul, décoratif, pour l'en-tête des pages services."""
-    return f"""<div class="solo" aria-hidden="true"><span class="brk__label">{s_["title"]}</span>
+    return f"""<div class="solo" aria-hidden="true" data-power data-now><span class="brk__label">{s_["title"]}</span>
 <span class="brk__face"><span class="brk__win"></span><span class="brk__slot"><span class="brk__lever"></span></span>{icon(s_["icon"])}</span></div>"""
 
 

@@ -1,4 +1,4 @@
-// Menu mobile, sous-menu services, formulaire.
+// Menu mobile, sous-menu services, tableau électrique, formulaire.
 (function () {
   var burger = document.querySelector('.burger');
   var nav = document.querySelector('.nav');
@@ -20,6 +20,39 @@
   document.addEventListener('click', function (e) {
     document.querySelectorAll('.nav__drop.open').forEach(function (d) {
       if (!d.contains(e.target) && window.innerWidth > 1020) d.classList.remove('open');
+    });
+  });
+
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Mise sous tension : les manettes basculent une à une et les voyants s'allument.
+  document.querySelectorAll('[data-power]').forEach(function (el) {
+    function on() { setTimeout(function () { el.classList.add('is-on'); }, el.hasAttribute('data-now') ? 380 : 200); }
+    if (calm || !('IntersectionObserver' in window)) return el.classList.add('is-on');
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { on(); io.disconnect(); }
+    }, { threshold: 0.2 });
+    io.observe(el);
+  });
+
+  // Au toucher d'un disjoncteur : « clac », voyant qui brille, puis la page du service.
+  document.querySelectorAll('a.brk').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      if (calm || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      a.classList.add('is-pressed');
+      var face = a.querySelector('.brk__face');
+      setTimeout(function () {
+        if (face && window.innerWidth > 860) face.style.viewTransitionName = 'breaker';
+        window.location.href = a.href;
+      }, 280);
+    });
+  });
+  // Retour arrière (cache de page) : retirer l'état « appuyé ».
+  window.addEventListener('pageshow', function () {
+    document.querySelectorAll('.brk.is-pressed').forEach(function (a) {
+      a.classList.remove('is-pressed');
+      var f = a.querySelector('.brk__face'); if (f) f.style.viewTransitionName = '';
     });
   });
 
