@@ -529,72 +529,57 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .lightbox .lb-prev { left: 16px; top: 50%; }
 .lightbox .lb-next { right: 16px; top: 50%; }
 
-/* ---------- Volet : la porte du coffret s'ouvre et montre le service ---------- */
+/* ---------- Volet : le disjoncteur s'agrandit et devient la fiche du service ---------- */
 .volet-lock, .volet-lock body { overflow: hidden; }
-.volet { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 24px; perspective: 1800px; }
+.volet { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: clamp(16px, 4vh, 40px) 20px; }
 .volet[hidden] { display: none; }
-.volet__backdrop { position: absolute; inset: 0; background: rgba(10, 12, 14, .62); backdrop-filter: blur(3px); opacity: 0; transition: opacity .3s; }
+.volet__backdrop { position: absolute; inset: 0; background: rgba(20, 22, 24, .42); opacity: 0; transition: opacity .32s ease; }
 .volet.is-open .volet__backdrop { opacity: 1; }
-.volet__cabinet {
-  position: relative; width: min(1060px, 100%); padding: 14px; border-radius: 16px; background: var(--enclosure);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), inset 0 2px 0 rgba(255,255,255,.5), 0 40px 80px -20px rgba(0,0,0,.6);
-  transform: translateY(18px) scale(.96); opacity: 0; transition: transform .35s var(--ease-out), opacity .25s;
-  transform-style: preserve-3d;
+/* calque qui fait la transformation du disjoncteur vers la fiche (découpe animée par main.js) */
+.volet__morph { position: fixed; inset: 0; z-index: 1; background: var(--white); pointer-events: none; will-change: clip-path; }
+.volet__sheet {
+  position: relative; z-index: 2; width: min(980px, 100%); max-height: 100%; display: flex; flex-direction: column;
+  background: var(--white); border-radius: 14px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 24px 60px -18px rgba(0,0,0,.35);
+  opacity: 0; transition: opacity .22s ease;
 }
-.volet.is-open .volet__cabinet { transform: none; opacity: 1; }
-.volet__inside { position: relative; background: var(--white); border-radius: 9px; max-height: calc(100dvh - 76px); overflow: auto; overscroll-behavior: contain; }
+.volet.is-ready .volet__sheet { opacity: 1; }
+.volet.is-leaving .volet__sheet { transition-duration: .12s; }
+.volet__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 14px 22px; border-bottom: 1px solid var(--line); }
+.volet__tag { display: inline-flex; align-items: center; gap: 10px; font: 600 1.05rem/1 var(--font-display); color: var(--black); }
+.volet__tag::before {
+  content: ""; width: 14px; height: 11px; border-radius: 2px; background: var(--yellow);
+  box-shadow: 0 0 6px 1px rgba(247,198,0,.75), 0 0 14px 2px rgba(247,198,0,.3);
+}
 .volet__close {
-  position: sticky; top: 12px; float: right; margin: 12px 12px 0 0; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
-  background: var(--black); color: var(--white); font-size: 26px; line-height: 1; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer; flex: none;
+  background: var(--ral-soft); color: var(--black); display: grid; place-items: center;
+  transition: background-color .15s;
 }
-.volet__close:hover { background: var(--yellow); color: var(--black); }
-/* la porte : capot gris avec vis, étiquette et poignée, qui pivote sur sa charnière gauche */
-.volet__door {
-  position: absolute; inset: 0; z-index: 3; border-radius: 16px; transform-origin: left center; backface-visibility: hidden;
-  transform: perspective(1800px) rotateY(0deg);
-  background:
-    radial-gradient(circle at 16px 16px, #8e938c 0 3px, #eef0ec 3.5px 5px, transparent 5.5px),
-    radial-gradient(circle at calc(100% - 16px) 16px, #8e938c 0 3px, #eef0ec 3.5px 5px, transparent 5.5px),
-    radial-gradient(circle at 16px calc(100% - 16px), #8e938c 0 3px, #eef0ec 3.5px 5px, transparent 5.5px),
-    radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), #8e938c 0 3px, #eef0ec 3.5px 5px, transparent 5.5px),
-    linear-gradient(160deg, #e9ebe7, #d3d6d1);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), inset 0 2px 0 rgba(255,255,255,.7), 0 10px 30px -10px rgba(0,0,0,.4);
-  display: grid; place-items: center;
-  transition: transform .75s cubic-bezier(.55, .05, .2, 1) .28s, opacity .25s .95s;
-}
-.volet__tag {
-  background: var(--white); border: 1px solid var(--edge); padding: 10px 22px; border-radius: 3px;
-  font: 600 clamp(1.3rem, 3vw, 2rem)/1.1 var(--font-display); color: var(--black); box-shadow: 0 1px 0 rgba(0,0,0,.08);
-}
-.volet__handle { position: absolute; right: 26px; top: 50%; translate: 0 -50%; width: 12px; height: 90px; border-radius: 6px; background: linear-gradient(90deg, #3a3e42, #1f2224); box-shadow: 0 2px 4px rgba(0,0,0,.35); }
-.volet.is-open .volet__door { transform: perspective(1800px) rotateY(-108deg); opacity: 0; }
-.volet.is-closing .volet__door { transition: transform .38s cubic-bezier(.4, 0, .6, 1), opacity 0s; }
-.volet.is-closing .volet__cabinet { transition-delay: .3s; }
-.volet.is-closing .volet__backdrop { transition-delay: .25s; }
-/* contenu révélé derrière la porte */
-.volet__content > .vc > * { opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease-out), transform .5s var(--ease-out); }
-.volet.is-open .volet__content > .vc > * { opacity: 1; transform: none; }
-.volet.is-open .vc > :nth-child(1) { transition-delay: .62s; }
-.volet.is-open .vc > :nth-child(2) { transition-delay: .72s; }
-.volet.is-open .vc > :nth-child(3) { transition-delay: .82s; }
-.volet.is-open .vc > :nth-child(4) { transition-delay: .9s; }
-.vc { padding: clamp(24px, 4vw, 48px); }
-.vc__head { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(24px, 4vw, 48px); align-items: center; margin-bottom: clamp(28px, 4vw, 44px); }
-.vc__title { font-size: clamp(2.1rem, 4.4vw, 3.3rem); line-height: .98; max-width: 16ch; }
+.volet__close svg { width: 18px; height: 18px; }
+.volet__close:hover { background: var(--ral); }
+.volet__inside { overflow: auto; overscroll-behavior: contain; }
+/* contenu : apparition douce, bloc après bloc */
+.volet__content .vc > * { opacity: 0; transform: translateY(8px); transition: opacity .38s ease, transform .45s var(--ease-out); }
+.volet.is-ready .volet__content .vc > * { opacity: 1; transform: none; }
+.volet.is-ready .vc > :nth-child(2) { transition-delay: .06s; }
+.volet.is-ready .vc > :nth-child(3) { transition-delay: .12s; }
+.volet.is-ready .vc > :nth-child(4) { transition-delay: .18s; }
+.volet.is-leaving .volet__content .vc > * { opacity: 0; transition: opacity .14s ease; transition-delay: 0s; }
+.vc { padding: clamp(24px, 4vw, 44px); }
+.vc__head { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(24px, 4vw, 44px); align-items: center; margin-bottom: clamp(28px, 4vw, 40px); }
+.vc__title { font-size: clamp(2rem, 4vw, 3rem); line-height: .98; max-width: 16ch; }
 .vc__img { border-radius: 8px; overflow: hidden; }
 .vc__img img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
-.vc__cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 48px); margin-bottom: 32px; }
+.vc__cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 44px); margin-bottom: 28px; }
 .vc .aside-note { background: var(--ral-soft); }
-.vc__more { margin: 26px 0 0; font-weight: 600; }
+.vc__more { margin: 24px 0 0; font-weight: 600; }
 @media (max-width: 760px) {
   .volet { padding: 0; }
-  .volet__cabinet { width: 100%; height: 100dvh; padding: 8px; border-radius: 0; }
-  .volet__inside { max-height: calc(100dvh - 16px); height: 100%; }
-  .volet__door { border-radius: 0; }
+  .volet__sheet { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
+  .volet__bar { padding-top: max(14px, env(safe-area-inset-top)); }
   .vc__head, .vc__cols { grid-template-columns: 1fr; }
   .vc__head .vc__img { order: -1; }
-  .vc { padding-top: 64px; }
-  .volet__close { position: absolute; top: 10px; right: 10px; margin: 0; float: none; }
 }
 
 /* ---------- Apparitions au défilement (classes .rv posées par main.js) ---------- */
@@ -615,7 +600,6 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .pledge__stamp { rotate: -7deg; }
 
 @media (prefers-reduced-motion: reduce) {
-  .volet__door { display: none; }
   *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; animation: none !important; }
   .js .pw:not(.is-on) .brk__lever { transform: none; }
   .js .pw:not(.is-on) .brk__win { background: var(--yellow); }

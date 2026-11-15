@@ -47,18 +47,18 @@
   // Au toucher d'un disjoncteur : « clac », voyant qui brille, puis le volet du coffret
   // s'ouvre sur place et montre le service. Sans JavaScript (ou Ctrl-clic), le lien
   // mène simplement à la page du service.
-  var volet = null, lastBrk = null, openSlug = null;
+  var volet = null, lastBrk = null, openSlug = null, busy = false;
+  var EASE = 'cubic-bezier(.2, .8, .2, 1)';
   function buildVolet() {
     volet = document.createElement('div');
     volet.className = 'volet';
     volet.hidden = true;
     volet.setAttribute('role', 'dialog');
     volet.setAttribute('aria-modal', 'true');
-    volet.innerHTML = '<div class="volet__backdrop"></div>' +
-      '<div class="volet__cabinet"><div class="volet__inside">' +
-      '<button class="volet__close" type="button" aria-label="Fermer">&times;</button>' +
-      '<div class="volet__content"></div></div>' +
-      '<div class="volet__door" aria-hidden="true"><span class="volet__tag"></span><span class="volet__handle"></span></div></div>';
+    volet.innerHTML = '<div class="volet__backdrop"></div><div class="volet__morph"></div>' +
+      '<div class="volet__sheet"><div class="volet__bar"><span class="volet__tag"></span>' +
+      '<button class="volet__close" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>' +
+      '<div class="volet__inside"><div class="volet__content"></div></div></div>';
     document.body.appendChild(volet);
     volet.querySelector('.volet__backdrop').addEventListener('click', function () { closeVolet(true); });
     volet.querySelector('.volet__close').addEventListener('click', function () { closeVolet(true); });
@@ -72,6 +72,17 @@
       }
     });
   }
+  // découpe « inset » qui correspond à un rectangle de l'écran
+  function inset(r, rad) {
+    var w = window.innerWidth, h = window.innerHeight;
+    return 'inset(' + r.top + 'px ' + (w - r.right) + 'px ' + (h - r.bottom) + 'px ' + r.left + 'px round ' + rad + 'px)';
+  }
+  function fromRect() {
+    var face = lastBrk && (lastBrk.querySelector('.brk__face') || lastBrk);
+    var r = face && face.getBoundingClientRect();
+    if (!r || r.bottom < 0 || r.top > window.innerHeight) return null;   // disjoncteur hors écran
+    return r;
+  }
   function openVolet(slug, push) {
     var tpl = document.getElementById('volet-' + slug);
     if (!tpl) return false;
@@ -79,35 +90,57 @@
     var content = volet.querySelector('.volet__content');
     content.innerHTML = '';
     content.appendChild(tpl.content.cloneNode(true));
-    var title = content.querySelector('.vc__title');
-    title.id = 'volet-title';
+    content.querySelector('.vc__title').id = 'volet-title';
     volet.setAttribute('aria-labelledby', 'volet-title');
     volet.querySelector('.volet__tag').textContent = tpl.dataset.title;
     volet.querySelector('.volet__inside').scrollTop = 0;
+    volet.classList.remove('is-open', 'is-ready', 'is-leaving');
     volet.hidden = false;
     document.documentElement.classList.add('volet-lock');
-    void volet.offsetWidth;            // relancer les transitions
-    volet.classList.remove('is-closing');
-    volet.classList.add('is-open');
     openSlug = slug;
     if (push) history.pushState({ volet: slug }, '', '#' + slug);
-    setTimeout(function () { volet.querySelector('.volet__close').focus({ preventScroll: true }); }, calm ? 0 : 700);
+    var sheet = volet.querySelector('.volet__sheet'), morph = volet.querySelector('.volet__morph');
+    var to = sheet.getBoundingClientRect(), from = fromRect();
+    var radius = window.innerWidth > 760 ? 14 : 0;
+    void volet.offsetWidth;
+    volet.classList.add('is-open');
+    function ready() {
+      volet.classList.add('is-ready');
+      volet.querySelector('.volet__close').focus({ preventScroll: true });
+    }
+    if (calm || !from || !morph.animate) { morph.style.opacity = '0'; ready(); return true; }
+    morph.style.opacity = '1';
+    var anim = morph.animate([{ clipPath: inset(from, 5), backgroundColor: '#f6f6f3' }, { clipPath: inset(to, radius), backgroundColor: '#ffffff' }],
+      { duration: 480, easing: EASE, fill: 'forwards' });
+    setTimeout(ready, 200);                         // la fiche apparaît en fondu pendant la fin du mouvement
+    anim.onfinish = function () { morph.style.opacity = '0'; };
     return true;
   }
   function closeVolet(viaHistory) {
-    if (!volet || !openSlug) return;
+    if (!volet || !openSlug || busy) return;
     if (viaHistory && history.state && history.state.volet) { history.back(); return; }  // popstate refermera
-    openSlug = null;
-    volet.classList.remove('is-open');
-    volet.classList.add('is-closing');
-    setTimeout(function () {
-      volet.hidden = true;
-      volet.classList.remove('is-closing');
+    openSlug = null; busy = true;
+    var sheet = volet.querySelector('.volet__sheet'), morph = volet.querySelector('.volet__morph');
+    var to = fromRect(), from = sheet.getBoundingClientRect();
+    var radius = window.innerWidth > 760 ? 14 : 0;
+    function done() {
+      volet.hidden = true; busy = false;
+      volet.classList.remove('is-open', 'is-ready', 'is-leaving');
+      morph.getAnimations().forEach(function (a) { a.cancel(); });
       document.documentElement.classList.remove('volet-lock');
       if (!viaHistory && location.hash && document.getElementById('volet-' + location.hash.slice(1)))
         history.replaceState(null, '', location.pathname + location.search);
-    }, calm ? 0 : 480);
-    if (lastBrk) { lastBrk.classList.remove('is-pressed'); lastBrk.focus({ preventScroll: true }); }
+      if (lastBrk) { lastBrk.classList.remove('is-pressed'); lastBrk.focus({ preventScroll: true }); }
+    }
+    volet.classList.add('is-leaving');
+    volet.classList.remove('is-open');
+    if (calm || !to || !morph.animate) { setTimeout(done, calm ? 0 : 320); return; }
+    setTimeout(function () {
+      volet.classList.remove('is-ready');           // la fiche disparaît, le calque prend le relais
+      morph.style.opacity = '1';
+      morph.animate([{ clipPath: inset(from, radius), backgroundColor: '#ffffff' }, { clipPath: inset(to, 5), backgroundColor: '#f6f6f3', opacity: 1, offset: .82 }, { clipPath: inset(to, 5), backgroundColor: '#f6f6f3', opacity: 0 }],
+        { duration: 460, easing: EASE, fill: 'forwards' }).onfinish = done;
+    }, 130);
   }
   window.addEventListener('popstate', function (e) {
     var h = location.hash.slice(1);
@@ -125,7 +158,7 @@
       lastBrk = a;
       if (calm) { openVolet(slug, true); return; }
       a.classList.add('is-pressed');
-      setTimeout(function () { openVolet(slug, true); }, 380);
+      setTimeout(function () { openVolet(slug, true); }, 220);
     });
   });
   // Lien direct vers un service ouvert (ex. index.html#domotique)
