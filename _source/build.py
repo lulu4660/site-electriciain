@@ -282,15 +282,15 @@ def footer():
 <footer class="footer"><div class="container">
   <div class="footer__grid">
     <div>
-      <a class="footer__logo" href="index.html"><img src="img/logo.webp" alt="{NOM}" width="600" height="346" loading="lazy"></a>
+      <a class="footer__logo" href="index.html" aria-label="{NOM}, accueil"><img src="img/logo.webp" alt="{NOM}" width="600" height="346" loading="lazy"></a>
       <p>Société d'électricité à Martignat. Électricité générale, tertiaire et industrielle pour les particuliers et les professionnels de l'Ain.</p>
       <div class="footer__social">
         <a href="{FACEBOOK}" target="_blank" rel="noopener" aria-label="Facebook">{icon("fb")}</a>
         <a href="{INSTAGRAM}" target="_blank" rel="noopener" aria-label="Instagram">{icon("ig")}</a>
       </div>
     </div>
-    <div><h4>Nos services</h4><ul>{svc}</ul></div>
-    <div><h4>Contact</h4><ul>
+    <div><h2 class="footer__title">Nos services</h2><ul>{svc}</ul></div>
+    <div><h2 class="footer__title">Contact</h2><ul>
       {ppl}
       <li><a href="{GMAPS}" target="_blank" rel="noopener">{ADRESSE}<br>{VILLE}</a></li>
       <li>{HORAIRES}</li>
@@ -298,9 +298,9 @@ def footer():
   </div>
   <div class="footer__bottom"><span>© {NOM}. Tous droits réservés.</span><span>Garantie décennale sur tous nos travaux</span></div>
 </div></footer>
-<div class="callbar">
-  {"".join(f'<a class="btn btn--{c}" href="tel:{t}">{icon("phone")} {n.split()[-1]}</a>' for (n, d, t), c in zip(CONTACTS, ["yellow", "blue"]))}
-</div>
+<nav class="callbar" aria-label="Appeler">
+  {"".join(f'<a href="tel:{t}">{icon("phone")}<span>Appeler<b>{n.split()[-1]}</b></span></a>' for n, d, t in CONTACTS)}
+</nav>
 <script src="assets/main.js" defer></script>
 </body>
 </html>
@@ -333,6 +333,41 @@ def perks():
             ("Deux associés", "Ceux qui font le devis sont ceux qui font le chantier.")]
     items = "".join(f"<div><dt>{t}</dt><dd>{d}</dd></div>" for t, d in data)
     return f"""<div class="pledge"><img class="pledge__stamp" src="img/decennale.webp" alt="Garantie décennale" width="512" height="346" loading="lazy"><dl>{items}</dl></div>"""
+
+
+STEPS = [("Vous appelez", "Vous tombez directement sur l'un des deux associés, du lundi au samedi."),
+         ("On regarde ensemble", "Nous faisons le point sur votre besoin, sur place si c'est utile."),
+         ("Vous recevez le devis", "Gratuit, détaillé, sans surprise : vous savez ce que vous payez."),
+         ("On réalise les travaux", "Chantier propre, délais tenus, travaux couverts par la garantie décennale.")]
+
+
+def process():
+    items = "".join(f"<li><h3>{t}</h3><p>{d}</p></li>" for t, d in STEPS)
+    return f"""<section class="section"><div class="container">
+  <h2>Comment ça se passe</h2>
+  <ol class="steps">{items}</ol>
+</div></section>"""
+
+
+FAQ = [("Le devis est-il payant ?", "Non. Le devis est gratuit et ne vous engage à rien."),
+       ("Dans quelles communes intervenez-vous ?", "Nous sommes basés à Martignat et intervenons à Oyonnax, dans le Haut-Bugey, jusqu'à Bourg-en-Bresse et dans tout le département de l'Ain."),
+       ("Mon installation est ancienne : faut-il tout refaire ?", "Pas forcément. Nous commençons par regarder l'état de votre installation, puis nous vous proposons une mise en sécurité ou une rénovation complète, selon ce qui est nécessaire et votre budget."),
+       ("Vos travaux sont-ils garantis ?", "Oui. Tous nos travaux sont couverts par la garantie décennale."),
+       ("Travaillez-vous pour les professionnels ?", "Oui : bureaux, commerces, ateliers et sites industriels, en courant fort comme en courant faible."),
+       ("Quand peut-on vous joindre ?", "Du lundi au samedi, de 8 h à 19 h, directement sur le portable de l'un des deux associés.")]
+
+
+def faq():
+    nb = lambda x: x.replace(" ?", "\u202f?").replace(" :", "\u202f:")
+    items = "".join(f"<details><summary>{nb(q)}</summary><p>{nb(a)}</p></details>" for q, a in FAQ)
+    data = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in FAQ]}
+    import json
+    return f"""<section class="section section--alt"><div class="container faq-grid">
+  <div><h2>Questions fréquentes</h2><p>Une autre question&nbsp;? Appelez-nous, c'est le plus rapide.</p></div>
+  <div class="faq">{items}</div>
+</div>
+<script type="application/ld+json">{json.dumps(data, ensure_ascii=False)}</script></section>"""
 
 
 # ------------------------------------------------------------------ pages
@@ -371,6 +406,8 @@ def page_index():
   </div>
 </div></section>
 
+{process()}
+
 <section class="section section--alt"><div class="container">
   <h2>Ce sur quoi vous pouvez compter</h2>
   {perks()}
@@ -389,6 +426,8 @@ def page_index():
     </div>
   </div>
 </div></section>
+
+{faq()}
 """ + cta() + footer()
 
 
