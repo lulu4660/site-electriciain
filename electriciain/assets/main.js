@@ -25,15 +25,24 @@
 
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Mise sous tension : les manettes basculent une à une et les voyants s'allument.
-  document.querySelectorAll('[data-power]').forEach(function (el) {
-    function on() { setTimeout(function () { el.classList.add('is-on'); }, el.hasAttribute('data-now') ? 380 : 200); }
-    if (calm || !('IntersectionObserver' in window)) return el.classList.add('is-on');
+  // Mise sous tension : chaque disjoncteur s'allume quand il arrive vraiment à l'écran.
+  // Ceux qui arrivent ensemble (une rangée sur ordinateur) s'allument l'un après l'autre.
+  var units = document.querySelectorAll('.pw');
+  if (calm || !('IntersectionObserver' in window)) {
+    units.forEach(function (el) { el.classList.add('is-on'); });
+  } else {
     var io = new IntersectionObserver(function (entries) {
-      if (entries[0].isIntersecting) { on(); io.disconnect(); }
-    }, { threshold: 0.2 });
-    io.observe(el);
-  });
+      var k = 0;
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var el = en.target, d = (el.hasAttribute('data-now') ? 450 : 150) + k * 260;
+        el.style.setProperty('--d', d + 'ms');
+        el.classList.add('is-on');
+        io.unobserve(el); k++;
+      });
+    }, { threshold: 0.9, rootMargin: '0px 0px -18% 0px' });
+    units.forEach(function (el) { io.observe(el); });
+  }
 
   // Au toucher d'un disjoncteur : « clac », voyant qui brille, puis la page du service.
   document.querySelectorAll('a.brk').forEach(function (a) {
@@ -45,7 +54,7 @@
       setTimeout(function () {
         if (face && window.innerWidth > 860) face.style.viewTransitionName = 'breaker';
         window.location.href = a.href;
-      }, 280);
+      }, 640);
     });
   });
   // Retour arrière (cache de page) : retirer l'état « appuyé ».

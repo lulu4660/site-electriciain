@@ -202,19 +202,42 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 }
 .brk__win::after { content: "I"; position: absolute; inset: 0; display: grid; place-items: center; font: 700 10px/1 var(--font-body); color: var(--black); transition: color .3s; }
 
-/* mise sous tension : manettes qui basculent une à une, voyants qui s'allument en jaune */
-.js [data-power]:not(.is-on) .brk__lever { transform: translateY(32px); }
-.js [data-power]:not(.is-on) .brk__win { background: #8d928c; box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
-.js [data-power]:not(.is-on) .brk__win::after { content: "O"; color: #e9ebe8; }
-[data-power] .brk__lever { transition-delay: calc(var(--i, 0) * 90ms); }
-[data-power] .brk__win, [data-power] .brk__win::after { transition-delay: calc(var(--i, 0) * 90ms + 150ms); }
+/* Mise sous tension, module par module quand il arrive à l'écran (.pw = alimenté par JS).
+   La manette part lentement puis claque ; le voyant clignote puis reste allumé. */
+.panel, .solo { --travel: 32px; }
+.js .pw:not(.is-on) .brk__lever { transform: translateY(var(--travel)); }
+.js .pw:not(.is-on) .brk__win { background: #8d928c; box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
+.js .pw:not(.is-on) .brk__win::after { content: "O"; color: #e9ebe8; }
+.pw .brk__lever { transition: transform .6s cubic-bezier(.7, 0, .2, 1.25); transition-delay: var(--d, 0ms); }
+.pw.is-on .brk__win { animation: flicker .9s linear both; animation-delay: calc(var(--d, 0ms) + 480ms); }
+@keyframes flicker {
+  0%   { background: #8d928c; box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
+  10%  { background: var(--yellow); box-shadow: 0 0 10px 2px rgba(247,198,0,.8); }
+  18%  { background: #8d928c; box-shadow: none; }
+  30%  { background: var(--yellow); box-shadow: 0 0 12px 3px rgba(247,198,0,.85); }
+  38%  { background: #b9a24a; box-shadow: 0 0 4px rgba(247,198,0,.4); }
+  55%  { background: #fff1a0; box-shadow: 0 0 14px 4px rgba(247,198,0,.95), 0 0 34px 10px rgba(247,198,0,.45); }
+  100% { background: var(--yellow); box-shadow: inset 0 1px 1px rgba(255,255,255,.6), 0 0 6px 1px rgba(247,198,0,.75), 0 0 16px 2px rgba(247,198,0,.35); }
+}
 
-/* au toucher : « clac » de la manette et voyant qui brille, puis changement de page */
-.brk.is-pressed .brk__lever { animation: clack .26s var(--ease-out); }
-.brk.is-pressed .brk__win { box-shadow: inset 0 1px 1px rgba(255,255,255,.7), 0 0 10px 3px rgba(247,198,0,.95), 0 0 28px 8px rgba(247,198,0,.5); transition-delay: 0s; }
-.brk.is-pressed .brk__label { background: var(--yellow); }
+/* Au toucher : la manette descend sur O, remonte d'un coup sur I, le voyant se rallume en grand. */
+.brk.is-pressed .brk__lever { animation: cycle .62s both; }
+.brk.is-pressed .brk__win { animation: relight .62s both; }
+.brk.is-pressed .brk__label { background: var(--yellow); transition-delay: .3s; }
 .brk.is-pressed .brk__face { border-color: #7f857e; }
-@keyframes clack { 0% { transform: none; } 45% { transform: translateY(9px); } 100% { transform: none; } }
+@keyframes cycle {
+  0%   { transform: none; animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
+  30%  { transform: translateY(var(--travel)); }
+  48%  { transform: translateY(var(--travel)); animation-timing-function: cubic-bezier(.7, 0, .2, 1.4); }
+  70%  { transform: none; }
+  100% { transform: none; }
+}
+@keyframes relight {
+  0%   { background: var(--yellow); }
+  26%, 62% { background: #8d928c; box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
+  74%  { background: #fff6c2; box-shadow: 0 0 16px 6px rgba(247,198,0,1), 0 0 44px 16px rgba(247,198,0,.55); }
+  100% { background: var(--yellow); box-shadow: 0 0 10px 3px rgba(247,198,0,.95), 0 0 28px 8px rgba(247,198,0,.5); }
+}
 
 /* transition entre les pages (navigateurs récents) */
 @view-transition { navigation: auto; }
@@ -255,8 +278,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
   .brk:hover .brk__label, .brk:focus-visible .brk__label { background: none; color: var(--blue); }
   .brk__slot { width: 26px; height: 56px; }
   .brk__lever { height: 25px; left: 3px; right: 3px; top: 3px; }
-  .js [data-power]:not(.is-on) .brk__lever { transform: translateY(25px); }
-  @keyframes clack { 0% { transform: none; } 45% { transform: translateY(7px); } 100% { transform: none; } }
+  .panel { --travel: 25px; }
   .brk__face > svg { width: 18px; height: 18px; right: 50%; translate: 50% 0; bottom: 7px; }
   .brk__win { left: 50%; translate: -50% 0; top: 7px; width: 16px; height: 12px; }
 }
@@ -266,7 +288,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 .solo .brk__face { height: 170px; }
 .solo .brk__slot { height: 92px; width: 40px; }
 .solo .brk__lever { height: 44px; }
-.js .solo[data-power]:not(.is-on) .brk__lever { transform: translateY(40px); }
+.solo { --travel: 40px; }
 .solo .brk__win { width: 22px; height: 17px; }
 
 /* ---------- En-tête des pages intérieures ---------- */
@@ -467,7 +489,7 @@ p { margin: 0 0 1em; max-width: 68ch; text-wrap: pretty; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; animation: none !important; }
-  .js [data-power]:not(.is-on) .brk__lever { transform: none; }
-  .js [data-power]:not(.is-on) .brk__win { background: var(--yellow); }
-  .js [data-power]:not(.is-on) .brk__win::after { content: "I"; color: var(--black); }
+  .js .pw:not(.is-on) .brk__lever { transform: none; }
+  .js .pw:not(.is-on) .brk__win { background: var(--yellow); }
+  .js .pw:not(.is-on) .brk__win::after { content: "I"; color: var(--black); }
 }
