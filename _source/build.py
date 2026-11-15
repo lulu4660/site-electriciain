@@ -300,7 +300,7 @@ def footer():
       <li>{HORAIRES}</li>
     </ul></div>
   </div>
-  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés. <a href="credits.html">Crédits photos</a></span><span>Garantie décennale sur tous nos travaux</span></div>
+  <div class="footer__bottom"><span>© {NOM}. Tous droits réservés. <a href="credits.html">Crédits photos</a> · <a href="jeu.html">Mini-jeu</a></span><span>Garantie décennale sur tous nos travaux</span></div>
 </div></footer>
 <nav class="callbar" aria-label="Appeler">
   {"".join(f'<a href="tel:{t}">{icon("phone")}<span>Appeler<b>{n.split()[-1]}</b></span></a>' for n, d, t in CONTACTS)}
@@ -674,6 +674,10 @@ def page_index():
   </div>
 </div></section>
 
+<section class="section jeu-teaser"><div class="container jeu-teaser__in">
+  <div><h2>Une pause ? Rétablissez le courant</h2><p>Les disjoncteurs sautent, la maison s'éteint pièce par pièce : jusqu'où tiendrez-vous ? Un mini-jeu d'une minute.</p></div>
+  <a class="btn btn--yellow" href="jeu.html">Jouer à Panne générale</a>
+</div></section>
 {faq()}
 """ + cta() + footer()
 
@@ -919,8 +923,84 @@ def page_credits():
 """ + footer()
 
 
+# ------------------------------------------------------------------ mini-jeu « Panne générale »
+JEU_V = hashlib.sha1(b"".join((ROOT / "assets" / f).read_bytes() for f in ("jeu.css", "jeu.js"))).hexdigest()[:8]
+
+
+def page_jeu():
+    t = CONTACTS[0]
+    house = """<svg class="jeu__house" viewBox="0 0 480 300" aria-hidden="true">
+  <circle cx="420" cy="48" r="18" fill="#fff4c2"/><circle cx="428" cy="42" r="15" fill="#13213f"/>
+  <g fill="#fff" opacity=".7"><circle cx="40" cy="30" r="1.4"/><circle cx="120" cy="18" r="1.1"/><circle cx="300" cy="24" r="1.3"/><circle cx="360" cy="70" r="1"/><circle cx="460" cy="110" r="1.2"/><circle cx="18" cy="90" r="1"/></g>
+  <path d="M0 272 H480 V300 H0 Z" fill="#0a1222"/>
+  <path d="M44 272 V196" stroke="#2b3550" stroke-width="5" stroke-linecap="round"/>
+  <path d="M90 125 H330 V272 H90 Z" fill="#e9ecef"/>
+  <path d="M70 128 L210 40 L350 128 Z" fill="#2a5cb3"/>
+  <path d="M330 182 H442 V272 H330 Z" fill="#dfe3e6"/><path d="M324 184 H448" stroke="#2a5cb3" stroke-width="8" stroke-linecap="round"/>
+  <path d="M90 196 H330" stroke="#cfd4d8" stroke-width="3"/>
+  <rect x="262" y="210" width="38" height="62" rx="3" fill="#2a5cb3"/><circle cx="292" cy="243" r="2.5" fill="#f7c600"/>
+  <rect class="jeu__win" x="108" y="208" width="64" height="44" rx="4"/>
+  <rect class="jeu__win" x="188" y="208" width="54" height="44" rx="4"/>
+  <rect class="jeu__win" x="108" y="142" width="52" height="40" rx="4"/>
+  <rect class="jeu__win" x="182" y="142" width="52" height="40" rx="4"/>
+  <rect class="jeu__win" x="258" y="142" width="48" height="40" rx="4"/>
+  <rect class="jeu__win" x="348" y="206" width="78" height="66" rx="3"/>
+  <circle class="jeu__win" cx="44" cy="190" r="13"/>
+  <circle class="jeu__win" cx="210" cy="94" r="17"/>
+</svg>"""
+    return head(f"Panne générale, le mini-jeu | {NOM}", "Rétablissez le courant avant que les clients s'impatientent : le mini-jeu des Électrici'Ain.", "jeu",
+                f'<link rel="stylesheet" href="assets/jeu.css?v={JEU_V}">\n<script src="assets/jeu.js?v={JEU_V}" defer></script>\n') + header("") + f"""
+<section class="section jeu-page"><div class="container">
+  <div class="jeu-page__head">
+    <h1>Panne générale</h1>
+    <p class="lead">Les disjoncteurs sautent les uns après les autres. Réenclenchez-les avant que la maison ne reste dans le noir.</p>
+  </div>
+  <div class="jeu" data-jeu>
+    <div class="jeu__hud">
+      <div class="jeu__score"><span class="jeu__k">Score</span><b data-score aria-live="polite">0</b><span class="jeu__combo" data-combo></span></div>
+      <div class="jeu__lives" data-lives role="img"></div>
+      <div class="jeu__timer"><span class="jeu__bar"><span data-time></span></span><b data-time-txt>60 s</b></div>
+    </div>
+    {house}
+    <div class="jeu__panel" aria-label="Tableau électrique : un disjoncteur par pièce"></div>
+    <canvas class="jeu__fx" aria-hidden="true"></canvas>
+    <div class="jeu__pops" aria-hidden="true"></div>
+
+    <div class="jeu__screen" data-screen="start">
+      <div class="jeu__card">
+        <h2>Rétablissez le courant</h2>
+        <ul class="jeu__rules">
+          <li><span class="jdot jdot--off"></span>Un disjoncteur saute, la pièce s'éteint : touchez-le vite pour le réenclencher.</li>
+          <li><span class="jdot jdot--surge"></span>Rouge qui grésille : surtension. Attendez qu'elle retombe, sinon coup de jus.</li>
+          <li><span class="jdot jdot--gold"></span>Éclair doré : bonus de points et 3 secondes en plus.</li>
+        </ul>
+        <p class="jeu__small">60 secondes, 3 vies. Une pièce laissée trop longtemps dans le noir vous coûte une vie. Au clavier : touches 1 à 8.</p>
+        <button type="button" class="btn btn--yellow jeu__go" data-play>Jouer</button>
+        <p class="jeu__small">Record sur cet appareil : <b data-best>0</b></p>
+      </div>
+    </div>
+    <div class="jeu__screen jeu__screen--count" data-screen="count" hidden><span class="jeu__count" data-count>3</span></div>
+    <div class="jeu__screen" data-screen="over" hidden>
+      <div class="jeu__card">
+        <p class="jeu__record" data-record hidden>Nouveau record</p>
+        <h2><span data-final>0</span> points</h2>
+        <p class="jeu__rank">Grade : <b data-rank>Apprenti</b></p>
+        <p class="jeu__small" data-stats></p>
+        <div class="jeu__acts">
+          <button type="button" class="btn btn--yellow" data-again>Rejouer</button>
+          <button type="button" class="btn btn--line" data-share>Défier un ami</button>
+        </div>
+        <p class="jeu__real">Une vraie panne chez vous ? <a href="tel:{t[2]}">Appelez le {t[1]}</a></p>
+      </div>
+    </div>
+  </div>
+  <p class="jeu-page__foot"><button type="button" class="jeu__mute" data-mute aria-pressed="false">Son activé</button></p>
+</div></section>
+""" + footer()
+
+
 def main():
-    pages = {"index.html": page_index(), "404.html": page_404(), "credits.html": page_credits(), "contact.html": page_contact(), "realisations.html": page_realisations()}
+    pages = {"index.html": page_index(), "jeu.html": page_jeu(), "404.html": page_404(), "credits.html": page_credits(), "contact.html": page_contact(), "realisations.html": page_realisations()}
     for s in SERVICES:
         pages[s["slug"] + ".html"] = page_service(s)
     import re
