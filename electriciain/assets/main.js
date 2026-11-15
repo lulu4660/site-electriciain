@@ -156,6 +156,13 @@
     else if (!slug && openSlug) closeVolet(false);
   });
 
+  // un lien « Voir la fiche » (maison 3D) ouvre le même volet que les disjoncteurs
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-volet]');
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    if (!document.getElementById('volet-' + a.dataset.volet)) return;
+    e.preventDefault(); lastBrk = a; openVolet(a.dataset.volet, true);
+  });
   document.querySelectorAll('a.brk').forEach(function (a) {
     a.addEventListener('click', function (e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;

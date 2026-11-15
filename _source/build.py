@@ -625,7 +625,7 @@ def page_index():
     zones = ", ".join(ZONES[:-1]) + " et " + ZONES[-1].lower()
     return head(f"Électricien à Martignat (01) | {NOM}",
                 "Les Électrici'Ain, société d'électricité à Martignat : électricité générale, domotique, chauffage, VMC, alarme, bornes IRVE. Particuliers et pros dans l'Ain. Devis gratuit.",
-                "") + header("index") + f"""
+                "", THREE_MAP.replace("__M3D__", M3D)) + header("index") + f"""
 <section class="hero"><div class="container">
   <div class="hero__head">
     <h1>Électriciens à Martignat, pour les maisons et les entreprises de l'Ain</h1>
@@ -640,7 +640,7 @@ def page_index():
   <h2 class="sr-only">Nos services</h2>
   {panel(animate=True)}
 </div></section>
-
+""" + maison() + f"""
 {teaser()}
 <section class="section" id="entreprise"><div class="container">
   <div class="split">
@@ -676,6 +676,51 @@ def page_index():
 
 {faq()}
 """ + cta() + footer()
+
+
+THREE_MAP = """<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module" src="assets/maison3d.js?v=__M3D__"></script>
+"""
+M3D = hashlib.sha1((ROOT / "assets" / "maison3d.js").read_bytes()).hexdigest()[:8]
+
+
+def maison():
+    """Maison 3D interactive : chaque point est un métier ; la fiche s'affiche à côté."""
+    picks = "".join(f'<li><button type="button" class="pick" data-pick="{s_["slug"]}">{icon(s_["icon"])}<span>{s_["menu"]}</span></button></li>' for s_ in SERVICES)
+    fiches = "".join(f"""<template data-fiche="{s_["slug"]}" data-title="{s_["menu"]}">
+  <h3 tabindex="-1">{s_["title"]}</h3>
+  <p>{s_["short"]}</p>
+  <ul class="checks checks--mini">{"".join(f"<li>{i}</li>" for i in s_["items"][:3])}</ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="{s_["slug"]}.html" data-volet="{s_["slug"]}">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template>""" for s_ in SERVICES)
+    arr = lambda d: f'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="{d}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    return f"""<section class="section maison" id="maison"><div class="container">
+  <div class="maison__head">
+    <h2>Visitez la maison</h2>
+    <p>Chaque point allumé est l'un de nos métiers. Touchez-le : l'équipement se met en marche et sa fiche s'affiche.</p>
+  </div>
+  <div class="maison__grid">
+    <div class="maison__stage" data-maison>
+      <canvas class="maison__canvas" role="img" aria-label="Maquette 3D d'une maison ouverte et de ses équipements : tableau électrique, éclairage connecté, alarme, radiateur, VMC, porte de garage motorisée, borne de recharge et bureaux voisins."></canvas>
+      <div class="maison__pins"></div>
+      <div class="maison__tools">
+        <button type="button" data-rot="1" aria-label="Tourner vers la gauche">{arr("M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4")}</button>
+        <button type="button" data-reset>Vue d'ensemble</button>
+        <button type="button" data-rot="-1" aria-label="Tourner vers la droite">{arr("M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4")}</button>
+      </div>
+      <p class="maison__hint">Glissez pour tourner, molette pour zoomer</p>
+    </div>
+    <aside class="maison__panel" aria-live="polite">
+      <div class="maison__list">
+        <h3>Huit métiers sous un même toit</h3>
+        <ul class="picks">{picks}</ul>
+      </div>
+      <div class="maison__card" hidden></div>
+    </aside>
+  </div>
+  {fiches}
+</div></section>
+"""
 
 
 def teaser():

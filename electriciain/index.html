@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add('js')</script>
-<link rel="stylesheet" href="assets/style.css?v=6d14d60a">
+<link rel="stylesheet" href="assets/style.css?v=8bc1d4c0">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Electrician","name":"Les Électrici'Ain",
 "image":"https://www.leselectrici-ain.fr/img/logo.webp","url":"https://www.leselectrici-ain.fr/",
@@ -26,6 +26,8 @@
 "openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"08:00","closes":"19:00"}],
 "areaServed":"Ain","sameAs":["https://www.facebook.com/profile.php?id=61553836072906","https://www.instagram.com/leselectriciain"]}
 </script>
+<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module" src="assets/maison3d.js?v=9b9324b3"></script>
 </head>
 <body>
 <a class="skip" href="#contenu">Aller au contenu</a>
@@ -386,6 +388,72 @@
   <p class="vc__more"><a href="borne-irve.html">Voir la page complète : Bornes de recharge IRVE</a></p>
 </div></template>
 </div></section>
+<section class="section maison" id="maison"><div class="container">
+  <div class="maison__head">
+    <h2>Visitez la maison</h2>
+    <p>Chaque point allumé est l'un de nos métiers. Touchez-le : l'équipement se met en marche et sa fiche s'affiche.</p>
+  </div>
+  <div class="maison__grid">
+    <div class="maison__stage" data-maison>
+      <canvas class="maison__canvas" role="img" aria-label="Maquette 3D d'une maison ouverte et de ses équipements : tableau électrique, éclairage connecté, alarme, radiateur, VMC, porte de garage motorisée, borne de recharge et bureaux voisins."></canvas>
+      <div class="maison__pins"></div>
+      <div class="maison__tools">
+        <button type="button" data-rot="1" aria-label="Tourner vers la gauche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" data-reset>Vue d'ensemble</button>
+        <button type="button" data-rot="-1" aria-label="Tourner vers la droite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <p class="maison__hint">Glissez pour tourner, molette pour zoomer</p>
+    </div>
+    <aside class="maison__panel" aria-live="polite">
+      <div class="maison__list">
+        <h3>Huit métiers sous un même toit</h3>
+        <ul class="picks"><li><button type="button" class="pick" data-pick="electricite-generale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>Électricité générale</span></button></li><li><button type="button" class="pick" data-pick="alarme-interphonie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg><span>Alarme & interphonie</span></button></li><li><button type="button" class="pick" data-pick="domotique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><circle cx="12" cy="14" r="2"/><path d="M8.5 17.5a5 5 0 0 1 7 0"/></svg><span>Domotique</span></button></li><li><button type="button" class="pick" data-pick="chauffage-electrique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v12M11 6v12M15 6v12M19 6v12" opacity=".0"/><path d="M7.5 9v6M12 9v6M16.5 9v6"/><path d="M5 18v2M19 18v2"/></svg><span>Chauffage électrique</span></button></li><li><button type="button" class="pick" data-pick="vmc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 4-7 2 0 3 2 2 4l-4 4"/><path d="M14 12c4 0 7 1 7 4 0 2-2 3-4 2l-4-4"/><path d="M12 14c0 4-1 7-4 7-2 0-3-2-2-4l4-4"/><path d="M10 12c-4 0-7-1-7-4 0-2 2-3 4-2l4 4"/></svg><span>VMC</span></button></li><li><button type="button" class="pick" data-pick="motorisation-portails-garages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V8M21 21V8M3 10h18M3 15h18"/><path d="M7 10v11M11 10v11M15 10v11M19 10v11" opacity=".5"/><circle cx="21" cy="5" r="1.5"/></svg><span>Motorisation portails & garages</span></button></li><li><button type="button" class="pick" data-pick="electricite-tertiaire-et-industrielle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V10l6 4V10l6 4V6l6-3v18H3z"/><path d="M7 17h2M12 17h2M17 17h2"/></svg><span>Tertiaire & industriel</span></button></li><li><button type="button" class="pick" data-pick="borne-irve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="10" height="18" rx="2"/><path d="M8 8h2l-1.5 3h2L8 15"/><path d="M14 8h3a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9"/></svg><span>Borne de recharge IRVE</span></button></li></ul>
+      </div>
+      <div class="maison__card" hidden></div>
+    </aside>
+  </div>
+  <template data-fiche="electricite-generale" data-title="Électricité générale">
+  <h3 tabindex="-1">Électricité générale</h3>
+  <p>Installation, rénovation, mise aux normes et dépannage, en neuf comme en rénovation.</p>
+  <ul class="checks checks--mini"><li>Installation électrique complète (neuf et rénovation)</li><li>Mise aux normes NF C 15-100 et mise en sécurité</li><li>Remplacement de tableau électrique</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="electricite-generale.html" data-volet="electricite-generale">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="alarme-interphonie" data-title="Alarme & interphonie">
+  <h3 tabindex="-1">Alarme et interphonie</h3>
+  <p>Alarmes anti-intrusion, détecteurs, vidéosurveillance, interphones et visiophones.</p>
+  <ul class="checks checks--mini"><li>Alarmes anti-intrusion</li><li>Détecteurs de mouvement et capteurs de bris de vitre</li><li>Systèmes de vidéosurveillance</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="alarme-interphonie.html" data-volet="alarme-interphonie">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="domotique" data-title="Domotique">
+  <h3 tabindex="-1">Domotique</h3>
+  <p>Pilotez éclairage, chauffage, volets et sécurité depuis votre smartphone.</p>
+  <ul class="checks checks--mini"><li>Éclairage et scénarios d'ambiance</li><li>Chauffage et régulation de température</li><li>Volets roulants et stores</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="domotique.html" data-volet="domotique">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="chauffage-electrique" data-title="Chauffage électrique">
+  <h3 tabindex="-1">Chauffage électrique</h3>
+  <p>Radiateurs, planchers chauffants, régulation : installation, entretien et dépannage.</p>
+  <ul class="checks checks--mini"><li>Radiateurs électriques à inertie</li><li>Planchers chauffants</li><li>Convecteurs et panneaux rayonnants</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="chauffage-electrique.html" data-volet="chauffage-electrique">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="vmc" data-title="VMC">
+  <h3 tabindex="-1">VMC</h3>
+  <p>VMC simple flux, double flux ou hygroréglable pour un air sain toute l'année.</p>
+  <ul class="checks checks--mini"><li>VMC simple flux</li><li>VMC double flux avec récupération de chaleur</li><li>VMC hygroréglable</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="vmc.html" data-volet="vmc">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="motorisation-portails-garages" data-title="Motorisation portails & garages">
+  <h3 tabindex="-1">Motorisation de portails et garages</h3>
+  <p>Portails battants ou coulissants, portes de garage : installation et réparation.</p>
+  <ul class="checks checks--mini"><li>Portails battants</li><li>Portails coulissants</li><li>Portes de garage sectionnelles</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="motorisation-portails-garages.html" data-volet="motorisation-portails-garages">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="electricite-tertiaire-et-industrielle" data-title="Tertiaire & industriel">
+  <h3 tabindex="-1">Électricité tertiaire et industrielle</h3>
+  <p>Bureaux, commerces, usines : courant fort, courant faible et maintenance.</p>
+  <ul class="checks checks--mini"><li>Courant fort et courant faible</li><li>Tableaux et armoires électriques</li><li>Éclairage de locaux professionnels</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="electricite-tertiaire-et-industrielle.html" data-volet="electricite-tertiaire-et-industrielle">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template><template data-fiche="borne-irve" data-title="Borne de recharge IRVE">
+  <h3 tabindex="-1">Bornes de recharge IRVE</h3>
+  <p>Bornes de recharge pour véhicules électriques jusqu'à 22 kW.</p>
+  <ul class="checks checks--mini"><li>Conseil personnalisé sur le choix de la borne</li><li>Installation de bornes jusqu'à 22 kW</li><li>Particuliers, entreprises et collectivités</li></ul>
+  <div class="maison__acts"><a class="btn btn--blue" href="borne-irve.html" data-volet="borne-irve">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
+</template>
+</div></section>
 
 
 <section class="section" id="entreprise"><div class="container">
@@ -456,6 +524,6 @@
 <nav class="callbar" aria-label="Appeler">
   <a href="tel:0646245005"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2"/></svg><span>Appeler<b>Vuillermoz</b></span></a><a href="tel:0625625987"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2"/></svg><span>Appeler<b>Bardet</b></span></a>
 </nav>
-<script src="assets/main.js?v=6d14d60a" defer></script>
+<script src="assets/main.js?v=8bc1d4c0" defer></script>
 </body>
 </html>
