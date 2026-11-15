@@ -651,7 +651,13 @@ def main():
     pages = {"index.html": page_index(), "404.html": page_404(), "credits.html": page_credits(), "contact.html": page_contact(), "realisations.html": page_realisations()}
     for s in SERVICES:
         pages[s["slug"] + ".html"] = page_service(s)
+    import re
+    def stamp(m):   # version de chaque image dans son adresse : un navigateur ne garde jamais une ancienne photo
+        f = ROOT / m.group(2)
+        v = hashlib.sha1(f.read_bytes()).hexdigest()[:8] if f.exists() else ""
+        return f'{m.group(1)}="{m.group(2)}?v={v}"' if v else m.group(0)
     for name, html in pages.items():
+        html = re.sub(r'(src|href|content)="(img/[^"?]+)"', stamp, html)
         (ROOT / name).write_text(html, encoding="utf-8")
         print("écrit", name)
 
