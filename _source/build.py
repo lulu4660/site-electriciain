@@ -927,6 +927,41 @@ def page_credits():
 JEU_V = hashlib.sha1(b"".join((ROOT / "assets" / f).read_bytes() for f in ("jeu.css", "jeu.js"))).hexdigest()[:8]
 
 
+def avatar(who):
+    """Personnage dessiné (style illustration) : bras croisés, polo brodé du logo. who : 'aymeric' ou 'louis'."""
+    a = who == "aymeric"
+    polo, collar = ("#1f2b47", "#2a3a5e") if a else ("#1c1c1f", "#2c2c31")
+    hair = "#3a281d" if a else "#7a5234"
+    skin, shade = "#eab994", "#d79f78"
+    hair_path = ("M34 50 C30 26 46 14 62 15 C80 14 92 26 88 48 C84 38 76 33 66 34 C56 30 44 34 38 44 Z" if a
+                 else "M37 46 C35 28 48 19 62 19 C77 19 88 28 85 44 C80 36 72 32 62 33 C52 32 43 36 37 46 Z")
+    beard = '<path d="M41 62 C42 80 52 89 61 89 C71 89 80 80 81 62 C77 72 70 78 61 78 C52 78 45 72 41 62 Z" fill="#3a281d" opacity=".32"/>' if a else ""
+    watch = '' if a else '<rect x="71" y="117" width="11" height="9" rx="2" fill="#111"/><rect x="73" y="119" width="7" height="5" rx="1" fill="#3b3f45"/>'
+    return f"""<svg class="av av--{who}" viewBox="0 0 120 140" aria-hidden="true">
+  <path d="M8 140 C8 112 24 100 44 96 L61 104 L78 96 C98 100 112 112 112 140 Z" fill="{polo}"/>
+  <path d="M44 96 L61 112 L78 96 L70 94 L61 104 L52 94 Z" fill="{collar}"/>
+  <path d="M61 104 V122" stroke="{collar}" stroke-width="2"/><circle cx="61" cy="110" r="1.4" fill="#5b6478"/><circle cx="61" cy="117" r="1.4" fill="#5b6478"/>
+  <g transform="translate(78 108) scale(.9)"><path d="M0 9 L8 2 L16 9 V16 H0 Z" fill="none" stroke="#3f7be0" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6 L6 11 H9 L7 15" stroke="#f7c600" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>
+  <path d="M51 86 H71 V100 C67 104 55 104 51 100 Z" fill="{shade}"/>
+  <ellipse cx="37" cy="60" rx="5" ry="7" fill="{shade}"/><ellipse cx="85" cy="60" rx="5" ry="7" fill="{shade}"/>
+  <path d="M38 52 C38 32 50 24 61 24 C73 24 84 32 84 52 C84 76 74 90 61 90 C48 90 38 76 38 52 Z" fill="{skin}"/>
+  {beard}
+  <path class="av__hair" d="{hair_path}" fill="{hair}"/>
+  <path class="av__spark" d="M40 30 L33 18 M52 22 L50 8 M66 21 L70 7 M80 28 L90 17 M46 25 L40 12 M74 24 L80 11" stroke="{hair}" stroke-width="5" stroke-linecap="round"/>
+  <g class="av__eyes"><path d="M48 52 Q52 49 56 51 M66 51 Q70 49 74 52" stroke="{hair}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="52" cy="58" r="2.6" fill="#222"/><circle cx="70" cy="58" r="2.6" fill="#222"/></g>
+  <g class="av__x" stroke="#222" stroke-width="2.4" stroke-linecap="round"><path d="M49 55 L55 61 M55 55 L49 61 M67 55 L73 61 M73 55 L67 61"/></g>
+  <path d="M60 60 Q58 67 61 69" stroke="{shade}" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path class="av__m av__m--base" d="M54 75 Q61 {"78" if a else "77"} 68 74" stroke="#7a3b2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path class="av__m av__m--happy" d="M52 73 Q61 83 70 73 Z" fill="#7a3b2e"/>
+  <ellipse class="av__m av__m--shock" cx="61" cy="77" rx="4" ry="5" fill="#7a3b2e"/>
+  <path class="av__m av__m--sad" d="M54 78 Q61 72 68 78" stroke="#7a3b2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M18 132 C22 120 40 114 62 118 C78 121 92 118 100 122 C104 128 98 134 88 134 C70 134 50 128 30 136 Z" fill="{skin}"/>
+  <path d="M100 132 C96 120 80 114 58 118 C44 120 30 118 22 122 C18 128 24 134 34 134 C52 134 72 128 92 136 Z" fill="{shade}"/>
+  {watch}
+  <path class="av__bolt" d="M98 20 L88 38 H96 L90 54 L106 32 H98 L104 20 Z" fill="#f7c600" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>"""
+
+
 def page_jeu():
     t = CONTACTS[0]
     house = """<svg class="jeu__house" viewBox="0 0 480 300" aria-hidden="true">
@@ -957,6 +992,7 @@ def page_jeu():
   </div>
   <div class="jeu" data-jeu>
     <div class="jeu__hud">
+      <div class="jeu__me" data-me>{avatar("aymeric")}{avatar("louis")}</div>
       <div class="jeu__score"><span class="jeu__k">Score</span><b data-score aria-live="polite">0</b><span class="jeu__combo" data-combo></span></div>
       <div class="jeu__lives" data-lives role="img"></div>
       <div class="jeu__timer"><span class="jeu__bar"><span data-time></span></span><b data-time-txt>60 s</b></div>
@@ -975,13 +1011,19 @@ def page_jeu():
           <li><span class="jdot jdot--gold"></span>Éclair doré : bonus de points et 3 secondes en plus.</li>
         </ul>
         <p class="jeu__small">60 secondes, 3 vies. Une pièce laissée trop longtemps dans le noir vous coûte une vie. Au clavier : touches 1 à 8.</p>
-        <button type="button" class="btn btn--yellow jeu__go" data-play>Jouer</button>
+        <p class="jeu__choose">Choisissez votre électricien</p>
+        <div class="jeu__chars" role="radiogroup" aria-label="Personnage">
+          <button type="button" class="jchar" data-char="aymeric" role="radio" aria-checked="true">{avatar("aymeric")}<b>Aymeric</b><span>Le rapide : le multiplicateur monte tous les 4 réarmements</span></button>
+          <button type="button" class="jchar" data-char="louis" role="radio" aria-checked="false">{avatar("louis")}<b>Louis</b><span>Le prudent : ses gants isolants encaissent le premier coup de jus</span></button>
+        </div>
+        <button type="button" class="btn btn--yellow jeu__go" data-play>Jouer avec Aymeric</button>
         <p class="jeu__small">Record sur cet appareil : <b data-best>0</b></p>
       </div>
     </div>
     <div class="jeu__screen jeu__screen--count" data-screen="count" hidden><span class="jeu__count" data-count>3</span></div>
     <div class="jeu__screen" data-screen="over" hidden>
       <div class="jeu__card">
+        <div class="jeu__overav" data-overav>{avatar("aymeric")}{avatar("louis")}</div>
         <p class="jeu__record" data-record hidden>Nouveau record</p>
         <h2><span data-final>0</span> points</h2>
         <p class="jeu__rank">Grade : <b data-rank>Apprenti</b></p>

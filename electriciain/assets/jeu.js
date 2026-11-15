@@ -17,6 +17,21 @@
   var best = 0; try { best = +localStorage.getItem(BEST_KEY) || 0; } catch (e) {}
   $('[data-best]').textContent = best;
 
+  // ---------- personnage : Aymeric (le rapide) ou Louis (le prudent) ----------
+  var NAMES = { aymeric: 'Aymeric', louis: 'Louis' };
+  var who = 'aymeric'; try { who = localStorage.getItem('electriciain-jeu-perso') || 'aymeric'; } catch (e) {}
+  if (!NAMES[who]) who = 'aymeric';
+  var charBtns = game.querySelectorAll('.jchar'), playBtn = $('[data-play]');
+  function pick(w) {
+    who = w; try { localStorage.setItem('electriciain-jeu-perso', w); } catch (e) {}
+    charBtns.forEach(function (b) { var on = b.dataset.char === w; b.classList.toggle('is-on', on); b.setAttribute('aria-checked', String(on)); });
+    playBtn.textContent = 'Jouer avec ' + NAMES[w];
+    game.dataset.who = w;
+  }
+  charBtns.forEach(function (b) { b.addEventListener('click', function () { audio(); sfx.clac(1); pick(b.dataset.char); }); });
+  var me = $('[data-me]'), moodT = 0;
+  function mood(m, ms) { me.dataset.mood = m; clearTimeout(moodT); moodT = setTimeout(function () { me.dataset.mood = ''; }, ms || 700); }
+
   // ---------- disjoncteurs ----------
   var brks = ROOMS.map(function (name, i) {
     var b = document.createElement('button');
@@ -103,7 +118,7 @@
   // ---------- état de la partie ----------
   var state = { running: false };
   function reset() {
-    state = { running: false, t: 0, left: DURATION, score: 0, combo: 0, lives: LIVES, next: 1.0, rooms: ROOMS.map(function () { return { s: 'on', since: 0 }; }), hits: 0, best: 0 };
+    state = { running: false, t: 0, left: DURATION, score: 0, combo: 0, lives: LIVES, next: 1.0, rooms: ROOMS.map(function () { return { s: 'on', since: 0 }; }), hits: 0, best: 0, gloves: who === 'louis' ? 1 : 0 };
     brks.forEach(function (b, i) { setRoom(i, 'on'); });
     hud();
   }
@@ -122,7 +137,7 @@
     livesEl.innerHTML = ''; for (var i = 0; i < LIVES; i++) { var s = document.createElement('span'); s.className = 'jlife' + (i < state.lives ? ' is-on' : ''); livesEl.appendChild(s); }
     livesEl.setAttribute('aria-label', state.lives + ' vie' + (state.lives > 1 ? 's' : ''));
   }
-  var multiplier = function () { return 1 + Math.floor(state.combo / 5) * 0.5; };
+  var multiplier = function () { return 1 + Math.floor(state.combo / (who === 'aymeric' ? 4 : 5)) * 0.5; };
   var grace = function () { return Math.max(1.9, 3.3 - state.t * 0.022); };          // temps avant qu'une pièce dans le noir coûte une vie
   var interval = function () { return Math.max(0.42, 1.25 - state.t * 0.014); };     // rythme des pannes
 
@@ -132,8 +147,9 @@
     var r = state.rooms[i];
     if (r.s === 'on') { brks[i].classList.add('is-nudge'); setTimeout(function () { brks[i].classList.remove('is-nudge'); }, 160); return; }
     if (r.s === 'surge') {                       // coup de jus
-      sfx.zap(); buzz([60, 40, 90]); shake(); burst(x, y, '#ff5a3c', 26, 380); burst(x, y, '#ffffff', 10, 260);
-      pop('Coup de jus !', x, y, 'is-bad'); state.combo = 0; loseLife(); return;
+      sfx.zap(); buzz([60, 40, 90]); burst(x, y, '#ff5a3c', 26, 380); burst(x, y, '#ffffff', 10, 260);
+      if (state.gloves > 0) { state.gloves--; pop('Gants isolants !', x, y, 'is-combo'); mood('happy', 900); setRoom(i, 'off'); return; }
+      shake(); mood('zap', 900); pop('Coup de jus !', x, y, 'is-bad'); state.combo = 0; loseLife(); return;
     }
     var dt = state.t - r.since;
     var gold = r.s === 'gold';
@@ -144,11 +160,12 @@
     sfx.clac(1 + Math.min(state.combo, 20) * 0.02); if (gold) sfx.gold(); buzz(12);
     burst(x, y, gold ? '#ffe14d' : '#f7c600', gold ? 30 : 14, gold ? 360 : 240);
     pop('+' + pts + (gold ? ' · +3 s' : ''), x, y, gold ? 'is-gold' : '');
-    if (state.combo > 0 && state.combo % 5 === 0) pop('Combo ×' + String(multiplier()).replace('.', ','), x, y - 34, 'is-combo');
+    if (state.combo > 0 && state.combo % (who === 'aymeric' ? 4 : 5) === 0) { mood('happy', 800); }
+    if (state.combo > 0 && state.combo % (who === 'aymeric' ? 4 : 5) === 0) pop('Combo ×' + String(multiplier()).replace('.', ','), x, y - 34, 'is-combo');
     hud();
   }
   function loseLife() {
-    state.lives--; sfx.lose(); hud();
+    state.lives--; sfx.lose(); hud(); if (me.dataset.mood !== 'zap') mood('sad', 800);
     game.classList.remove('is-hurt'); void game.offsetWidth; game.classList.add('is-hurt');
     if (state.lives <= 0) end();
   }
@@ -211,7 +228,8 @@
     $('[data-rank]').textContent = rank;
     $('[data-best]').textContent = best.toLocaleString('fr-FR');
     $('[data-record]').hidden = !record;
-    $('[data-stats]').textContent = state.hits + ' disjoncteurs réenclenchés, meilleure série : ' + state.best + '.';
+    $('[data-stats]').textContent = NAMES[who] + ' a réenclenché ' + state.hits + ' disjoncteur' + (state.hits > 1 ? 's' : '') + ', meilleure série : ' + state.best + '.';
+    $('[data-overav]').dataset.mood = record || state.lives > 0 ? 'happy' : 'sad';
     show('over');
     setTimeout(function () { $('[data-again]').focus({ preventScroll: true }); }, 50);
     var r = game.getBoundingClientRect();
@@ -220,9 +238,9 @@
   game.querySelectorAll('[data-play], [data-again]').forEach(function (b) { b.addEventListener('click', start); });
   var share = $('[data-share]');
   share.addEventListener('click', function () {
-    var text = "J'ai fait " + state.score.toLocaleString('fr-FR') + " points à « Panne générale », le jeu des Électrici'Ain. À vous !";
+    var text = "J'ai fait " + state.score.toLocaleString('fr-FR') + " points avec " + NAMES[who] + " à « Panne générale », le jeu des Électrici'Ain. À vous !";
     if (navigator.share) navigator.share({ title: 'Panne générale', text: text, url: location.href }).catch(function () {});
     else if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + location.href).then(function () { share.textContent = 'Lien copié'; setTimeout(function () { share.textContent = 'Défier un ami'; }, 1800); });
   });
-  reset(); show('start');
+  pick(who); reset(); show('start');
 })();
