@@ -930,9 +930,9 @@ JEU_V = hashlib.sha1(b"".join((ROOT / "assets" / f).read_bytes() for f in ("jeu.
 def page_jeu():
     t = CONTACTS[0]
     chars = "".join(f"""<button type="button" class="jchar" data-char="{k}" role="radio" aria-checked="false">
-          <canvas class="jchar__pic" data-portrait="{k}" aria-hidden="true"></canvas><b>{n}</b><span class="jchar__t">{ti}</span><span>{d}</span></button>"""
-                    for k, n, ti, d in (("aymeric", "Aymeric", "Le rapide", "Court 25 % plus vite d'une pièce à l'autre."),
-                                        ("louis", "Louis", "Le méthodique", "Répare plus vite, et ses gants isolants encaissent un coup de jus.")))
+          <span class="jmono" data-who="{k}" aria-hidden="true">{n[0]}</span><span class="jchar__txt"><b>{n}</b><span class="jchar__t">{ti}</span><span class="jchar__d">{d}</span></span></button>"""
+                    for k, n, ti, d in (("aymeric", "Aymeric", "Le rapide", "Se déplace 25 % plus vite entre les pièces."),
+                                        ("louis", "Louis", "Le méthodique", "Intervient plus vite ; ses gants isolants le protègent une fois.")))
     return head(f"Panne générale, le jeu | {NOM}", "Rétablissez le courant dans toute la maison avant que les clients ne s'impatientent : le jeu des Électrici'Ain.", "jeu",
                 f'<link rel="stylesheet" href="assets/jeu.css?v={JEU_V}">\n<script src="assets/jeu.js?v={JEU_V}" defer></script>\n') + header("") + f"""
 <section class="section jeu-page"><div class="container">
@@ -942,32 +942,34 @@ def page_jeu():
   </div>
   <div class="jeu" data-jeu>
     <div class="jeu__hud">
-      <canvas class="jeu__me" data-portrait="me" aria-hidden="true"></canvas>
+      <span class="jmono jmono--sm" data-mono aria-hidden="true">A</span>
       <div class="jeu__score"><span class="jeu__k">Score</span><b data-score>0</b><span class="jeu__combo" data-combo></span></div>
       <div class="jeu__stars" data-stars role="img"></div>
       <div class="jeu__timer"><span class="jeu__bar"><span data-time></span></span><b data-time-txt>90 s</b></div>
     </div>
+    <p class="jeu__rotate">Astuce : tournez votre téléphone à l'horizontale pour jouer plus confortablement.</p>
     <canvas class="jeu__cv" tabindex="0" aria-label="La maison en coupe. Touchez une pièce éteinte pour y envoyer l'électricien, ou le tableau électrique pour couper le courant. Au clavier : 1 à 9 pour les pièces, T pour le tableau."></canvas>
     <p class="sr-only" aria-live="polite" data-live></p>
 
     <div class="jeu__screen" data-screen="start">
       <div class="jeu__card jeu__card--wide">
         <h2>Rétablissez le courant</h2>
+        <p class="jeu__intro">Vous supervisez l'installation d'une maison pendant 90 secondes. Les défauts s'enchaînent : à vous d'organiser les interventions.</p>
         <ol class="jeu__rules">
-          <li><b>Une pièce s'éteint ?</b> Touchez-la : votre électricien y court et répare. Programmez jusqu'à 3 interventions d'avance.</li>
-          <li><b>Étincelles rouges : court-circuit.</b> Envoyez-le d'abord couper au tableau électrique de l'entrée, sinon c'est le coup de jus.</li>
-          <li><b>Chaque client a sa jauge de patience.</b> Trop longtemps dans le noir, et vous perdez une étoile. 3 étoiles, 90 secondes.</li>
+          <li><b>Panne</b> : touchez la pièce, l'électricien s'y rend et rétablit le courant. Jusqu'à 3 interventions programmées d'avance.</li>
+          <li><b>Court-circuit</b> (câble rouge) : passez d'abord par le tableau pour couper, sinon l'électricien est électrisé et immobilisé.</li>
+          <li><b>Satisfaction client</b> : chaque pièce a un délai. S'il expire, vous perdez une étoile sur trois.</li>
         </ol>
-        <p class="jeu__choose">Choisissez votre électricien</p>
+        <p class="jeu__choose">Votre électricien</p>
         <div class="jeu__chars" role="radiogroup" aria-label="Personnage">{chars}</div>
-        <button type="button" class="btn btn--yellow jeu__go" data-play>Jouer</button>
+        <button type="button" class="btn btn--yellow jeu__go" data-play>Commencer</button>
         <p class="jeu__small">Record sur cet appareil : <b data-best>0</b> points. Au clavier : 1 à 9 pour les pièces, T pour le tableau.</p>
       </div>
     </div>
     <div class="jeu__screen jeu__screen--count" data-screen="count" hidden><span class="jeu__count" data-count>3</span></div>
     <div class="jeu__screen" data-screen="over" hidden>
       <div class="jeu__card">
-        <canvas class="jeu__endpic" data-portrait="me" data-end aria-hidden="true"></canvas>
+        <span class="jmono jmono--lg" data-mono aria-hidden="true">A</span>
         <p class="jeu__record" data-record hidden>Nouveau record</p>
         <h2><span data-final>0</span> points</h2>
         <p class="jeu__rank">Grade : <b data-rank>Apprenti</b></p>
