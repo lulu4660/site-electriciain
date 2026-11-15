@@ -199,7 +199,7 @@
     var seen = new Set();
     REVEAL.forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
-        if (seen.has(el) || el.closest('.hero, .page-hero, .panel')) return;
+        if (seen.has(el) || el.closest('.hero, .page-hero, .panel, .visite')) return;
         seen.add(el); el.classList.add('rv');
       });
     });

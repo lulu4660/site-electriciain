@@ -625,7 +625,7 @@ def page_index():
     zones = ", ".join(ZONES[:-1]) + " et " + ZONES[-1].lower()
     return head(f"Électricien à Martignat (01) | {NOM}",
                 "Les Électrici'Ain, société d'électricité à Martignat : électricité générale, domotique, chauffage, VMC, alarme, bornes IRVE. Particuliers et pros dans l'Ain. Devis gratuit.",
-                "", THREE_MAP.replace("__M3D__", M3D)) + header("index") + f"""
+                "", THREE_MAP.replace("__V3D__", V3D)) + header("index") + f"""
 <section class="hero"><div class="container">
   <div class="hero__head">
     <h1>Électriciens à Martignat, pour les maisons et les entreprises de l'Ain</h1>
@@ -640,7 +640,7 @@ def page_index():
   <h2 class="sr-only">Nos services</h2>
   {panel(animate=True)}
 </div></section>
-""" + maison() + f"""
+""" + visite() + f"""
 {teaser()}
 <section class="section" id="entreprise"><div class="container">
   <div class="split">
@@ -678,48 +678,57 @@ def page_index():
 """ + cta() + footer()
 
 
-THREE_MAP = """<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script type="module" src="assets/maison3d.js?v=__M3D__"></script>
+THREE_MAP = """<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module" src="assets/visite3d.js?v=__V3D__"></script>
 """
-M3D = hashlib.sha1((ROOT / "assets" / "maison3d.js").read_bytes()).hexdigest()[:8]
+V3D = hashlib.sha1((ROOT / "assets" / "visite3d.js").read_bytes()).hexdigest()[:8]
+GLBV = hashlib.sha1((ROOT / "assets" / "3d" / "maison.glb").read_bytes()).hexdigest()[:8]
+
+# ordre de la visite : celui des équipements dans la maison 3D (visite3d.js)
+VISITE = ["electricite-generale", "domotique", "chauffage-electrique", "vmc", "alarme-interphonie",
+          "motorisation-portails-garages", "borne-irve", "electricite-tertiaire-et-industrielle"]
 
 
-def maison():
-    """Maison 3D interactive : chaque point est un métier ; la fiche s'affiche à côté."""
-    picks = "".join(f'<li><button type="button" class="pick" data-pick="{s_["slug"]}">{icon(s_["icon"])}<span>{s_["menu"]}</span></button></li>' for s_ in SERVICES)
-    fiches = "".join(f"""<template data-fiche="{s_["slug"]}" data-title="{s_["menu"]}">
-  <h3 tabindex="-1">{s_["title"]}</h3>
-  <p>{s_["short"]}</p>
-  <ul class="checks checks--mini">{"".join(f"<li>{i}</li>" for i in s_["items"][:3])}</ul>
-  <div class="maison__acts"><a class="btn btn--blue" href="{s_["slug"]}.html" data-volet="{s_["slug"]}">Voir la fiche</a><button type="button" class="maison__back" data-back>Tous les métiers</button></div>
-</template>""" for s_ in SERVICES)
-    arr = lambda d: f'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="{d}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-    return f"""<section class="section maison" id="maison"><div class="container">
-  <div class="maison__head">
-    <h2>Visitez la maison</h2>
-    <p>Chaque point allumé est l'un de nos métiers. Touchez-le : l'équipement se met en marche et sa fiche s'affiche.</p>
+def visite():
+    """La visite 3D : la vue reste épinglée, les étapes défilent par-dessus."""
+    by = {s_["slug"]: s_ for s_ in SERVICES}
+    n = len(VISITE)
+    steps = []
+    for k, slug in enumerate(VISITE, 1):
+        s_ = by[slug]
+        items = "".join(f"<li>{i}</li>" for i in s_["items"][:3])
+        steps.append(f"""<article class="vstep" id="visite-{slug}"><div class="vstep__card">
+      <p class="vstep__n">{k:02d} / {n:02d}</p>
+      <h3>{s_["title"]}</h3>
+      <p>{s_["short"]}</p>
+      <ul class="checks checks--mini">{items}</ul>
+      <a class="btn btn--blue" href="{slug}.html" data-volet="{slug}">Voir la fiche</a>
+    </div></article>""")
+    rail = "".join(f'<button type="button" class="vrail__b" data-k="{k}" aria-label="Aller à : {by[slug]["menu"]}"><span class="vrail__lever"></span><span class="vrail__led"></span></button>' for k, slug in enumerate(VISITE, 1))
+    pins = "".join(f'<a class="vpin" data-k="{k}" href="#visite-{slug}"><span class="vpin__dot"></span><span class="vpin__label">{by[slug]["menu"]}</span></a>' for k, slug in enumerate(VISITE, 1))
+    return f"""<section class="visite" id="visite" data-visite data-glb="assets/3d/maison.glb?v={GLBV}" aria-label="Visite de la maison en 3D">
+  <div class="visite__stage">
+    <canvas class="visite__canvas" role="img" aria-label="Maison en 3D : on la parcourt pièce par pièce, chaque équipement électrique s'allume."></canvas>
+    <div class="visite__pins">{pins}</div>
+    <nav class="vrail" aria-label="Étapes de la visite">{rail}</nav>
+    <a class="visite__skip" href="#apres-visite">Passer la visite</a>
   </div>
-  <div class="maison__grid">
-    <div class="maison__stage" data-maison>
-      <canvas class="maison__canvas" role="img" aria-label="Maquette 3D d'une maison ouverte et de ses équipements : tableau électrique, éclairage connecté, alarme, radiateur, VMC, porte de garage motorisée, borne de recharge et bureaux voisins."></canvas>
-      <div class="maison__pins"></div>
-      <div class="maison__tools">
-        <button type="button" data-rot="1" aria-label="Tourner vers la gauche">{arr("M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4")}</button>
-        <button type="button" data-reset>Vue d'ensemble</button>
-        <button type="button" data-rot="-1" aria-label="Tourner vers la droite">{arr("M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4")}</button>
-      </div>
-      <p class="maison__hint">Glissez pour tourner, molette pour zoomer</p>
-    </div>
-    <aside class="maison__panel" aria-live="polite">
-      <div class="maison__list">
-        <h3>Huit métiers sous un même toit</h3>
-        <ul class="picks">{picks}</ul>
-      </div>
-      <div class="maison__card" hidden></div>
-    </aside>
+  <div class="visite__steps">
+    <article class="vstep vstep--intro"><div class="vstep__card">
+      <h2>Entrez dans la maison</h2>
+      <p>Faites défiler : on soulève le toit, puis on allume la maison pièce par pièce, métier par métier.</p>
+      <p class="vstep__cue" aria-hidden="true"><span></span></p>
+    </div></article>
+    {"".join(steps)}
+    <article class="vstep vstep--end"><div class="vstep__card">
+      <h3>Tout est branché</h3>
+      <p>Du tableau à la borne, du radiateur au portail : un seul interlocuteur pour toute la maison, et pour vos locaux.</p>
+      <div class="vstep__acts"><a class="btn btn--yellow" href="contact.html">Demander un devis gratuit</a><a class="btn btn--line" href="tel:{CONTACTS[0][2]}">{icon("phone")} {CONTACTS[0][1]}</a></div>
+      <p class="vstep__hint">Faites tourner la maison, ou touchez un point pour revoir un métier.</p>
+    </div></article>
   </div>
-  {fiches}
-</div></section>
+</section>
+<div id="apres-visite"></div>
 """
 
 
@@ -903,7 +912,10 @@ def page_credits():
     return head(f"Crédits photos | {NOM}", "Auteurs et licences des photos utilisées sur le site.", "credits") + header("") + page_hero(
         "Crédits photos", "Crédits photos",
         "Les photos d'illustration proviennent de Wikimedia Commons, sous licences libres. Merci à leurs auteurs.", ctas=False) + f"""
-<section class="section"><div class="container"><ul class="credits">{rows}</ul></div></section>
+<section class="section"><div class="container"><ul class="credits">{rows}</ul>
+<h2 class="credits__h">Maison 3D</h2>
+<p>Le mobilier, la voiture et la végétation de la visite 3D viennent des kits « Furniture Kit », « Car Kit » et « Nature Kit » de <a href="https://kenney.nl" target="_blank" rel="noopener">Kenney</a>, sous licence <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.fr" target="_blank" rel="noopener">CC0</a>. Rendu avec <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>.</p>
+</div></section>
 """ + footer()
 
 
